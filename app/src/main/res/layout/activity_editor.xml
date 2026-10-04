@@ -43,7 +43,8 @@
                 android:maxLines="3"
                 android:paddingTop="6dp"
                 android:paddingBottom="6dp"
-                android:textAlignment="viewStart"
+                android:textAlignment="textStart"
+                android:textDirection="firstStrong"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_hint"
                 android:textSize="26sp" />
@@ -68,7 +69,8 @@
                 android:inputType="textMultiLine|textCapSentences"
                 android:lineSpacingMultiplier="1.2"
                 android:minHeight="240dp"
-                android:textAlignment="viewStart"
+                android:textAlignment="textStart"
+                android:textDirection="firstStrong"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_hint"
                 android:textSize="17sp" />

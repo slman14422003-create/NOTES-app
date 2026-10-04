@@ -38,6 +38,8 @@ android {
         versionCode = (System.getenv('VERSION_CODE_OVERRIDE') ?: (10 + (System.getenv('GITHUB_RUN_NUMBER') ?: '0').toInteger()).toString()).toInteger()
         // CI passes the release tag (without the leading v) so the installed version matches the Release tag
         versionName = System.getenv('APP_VERSION_NAME') ?: "1.0"
+        // GitHub Actions sets GITHUB_REPOSITORY (owner/repo): the APK then updates itself from the repo that built it
+        buildConfigField 'String', 'UPDATE_REPO', "\"${(System.getenv('GITHUB_REPOSITORY') ?: '').trim()}\""
         buildConfigField 'String', 'WEB_CLIENT_ID', "\"${(System.getenv('WEB_CLIENT_ID') ?: '').trim()}\""
     }
 

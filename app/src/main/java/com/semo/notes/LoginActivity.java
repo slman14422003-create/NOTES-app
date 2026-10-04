@@ -79,6 +79,7 @@ public class LoginActivity extends AppCompatActivity {
         btnGoogle.setOnClickListener(v -> google());
         if (fromApp) btnLocal.setVisibility(View.GONE);
 
+        buildLangRow();
         btnLogin.setOnClickListener(v -> auth(false));
         btnSignUp.setOnClickListener(v -> auth(true));
         btnGuest.setOnClickListener(v -> guest());
@@ -87,6 +88,25 @@ public class LoginActivity extends AppCompatActivity {
             done();
         });
         findViewById(R.id.btnForgot).setOnClickListener(v -> forgot());
+    }
+
+    /** Two pills at the top: العربية | English (the current one is highlighted). */
+    private void buildLangRow() {
+        android.widget.LinearLayout row = findViewById(R.id.langRow);
+        row.removeAllViews();
+        String cur = Prefs.language(this);
+        if (cur.isEmpty()) cur = Lang.isAr(this) ? Lang.AR : Lang.EN;
+        final String[] vals = {Lang.AR, Lang.EN};
+        final int[] names = {R.string.lang_ar, R.string.lang_en};
+        for (int i = 0; i < 2; i++) {
+            final String v = vals[i];
+            TextView c = Ui.chip(this, getString(names[i]), v.equals(cur));
+            c.setOnClickListener(x -> {
+                Prefs.setLanguage(this, v);
+                Lang.apply(this);
+            });
+            row.addView(c);
+        }
     }
 
     private void setBusy(boolean busy) {

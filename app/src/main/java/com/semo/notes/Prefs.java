@@ -82,6 +82,15 @@ public final class Prefs {
         return sp(c).getLong("expiresAt", 0);
     }
 
+    /** "" = follow the system, "ar" or "en". */
+    public static String language(Context c) {
+        return sp(c).getString("lang", "");
+    }
+
+    public static void setLanguage(Context c, String v) {
+        sp(c).edit().putString("lang", v == null ? "" : v).apply();
+    }
+
     public static boolean autoSync(Context c) {
         return sp(c).getBoolean("autoSync", true);
     }
@@ -105,5 +114,48 @@ public final class Prefs {
 
     public static void setLastSync(Context c, long t) {
         sp(c).edit().putLong("lastSync", t).apply();
+    }
+
+    // ------------------------------------------------------------------ updates
+
+    /** "owner/repo" the app updates itself from; "" = use the repository the APK was built in. */
+    public static String updateRepo(Context c) {
+        return sp(c).getString("updRepo", "");
+    }
+
+    public static void setUpdateRepo(Context c, String v) {
+        sp(c).edit().putString("updRepo", v == null ? "" : v.trim()).apply();
+    }
+
+    public static boolean autoUpdate(Context c) {
+        return sp(c).getBoolean("updAuto", true);
+    }
+
+    public static void setAutoUpdate(Context c, boolean on) {
+        sp(c).edit().putBoolean("updAuto", on).apply();
+    }
+
+    public static boolean updatePre(Context c) {
+        return sp(c).getBoolean("updPre", false);
+    }
+
+    public static void setUpdatePre(Context c, boolean on) {
+        sp(c).edit().putBoolean("updPre", on).apply();
+    }
+
+    public static long lastUpdateCheck(Context c) {
+        return sp(c).getLong("updLast", 0);
+    }
+
+    public static void setLastUpdateCheck(Context c, long t) {
+        sp(c).edit().putLong("updLast", t).apply();
+    }
+
+    public static String skippedVersion(Context c) {
+        return sp(c).getString("updSkip", "");
+    }
+
+    public static void setSkippedVersion(Context c, String v) {
+        sp(c).edit().putString("updSkip", v == null ? "" : v).apply();
     }
 }

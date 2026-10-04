@@ -10,6 +10,9 @@ public final class Cfg {
     private Cfg() {
     }
 
+    /** Fallback "owner/repo" for in-app updates when the APK was not built by GitHub Actions. */
+    public static final String UPDATE_REPO_FALLBACK = "";
+
     public static final String API_KEY = "AIzaSyCvXS6nZ2md4xRVyUDtPNOMgL5ShUCADXI";
     public static final String PROJECT_ID = "semo-7770a";
 

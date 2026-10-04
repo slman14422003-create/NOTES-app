@@ -42,7 +42,9 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     private String query = "";
 
     private LinearLayout gridPinned, gridAll, chipRow;
-    private TextView secPinned, secAll, empty, subtitle;
+    private TextView secPinned, secAll, empty, emptyTitle, subtitle;
+    private View emptyBox;
+    private ImageView emptyIcon;
     private EditText search, quickText;
     private Button btnEmptyTrash;
     private ImageButton btnSync;
@@ -84,6 +86,9 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         secPinned = findViewById(R.id.secPinned);
         secAll = findViewById(R.id.secAll);
         empty = findViewById(R.id.empty);
+        emptyBox = findViewById(R.id.emptyBox);
+        emptyTitle = findViewById(R.id.emptyTitle);
+        emptyIcon = findViewById(R.id.emptyIcon);
         btnEmptyTrash = findViewById(R.id.btnEmptyTrash);
         search = findViewById(R.id.search);
         quickText = findViewById(R.id.quickText);
@@ -152,6 +157,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         if (Prefs.isCloud(this)) Sync.request(this, true); // automatic import + export on every start
         reload();
         refreshSyncUi();
+        Updater.autoCheck(this); // quiet check for a newer release on GitHub
     }
 
     @Override
@@ -345,12 +351,34 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         btnEmptyTrash.setVisibility(Db.F_TRASH.equals(filter) && !others.isEmpty() ? View.VISIBLE : View.GONE);
 
         boolean none = list.isEmpty();
-        empty.setVisibility(none ? View.VISIBLE : View.GONE);
+        emptyBox.setVisibility(none ? View.VISIBLE : View.GONE);
         if (none) {
-            if (!query.isEmpty()) empty.setText(R.string.empty_search);
-            else if (Db.F_TRASH.equals(filter)) empty.setText(R.string.empty_trash_screen);
-            else if (Db.F_ARCHIVE.equals(filter)) empty.setText(R.string.empty_archive);
-            else empty.setText(R.string.empty_notes);
+            int icon = R.drawable.ic_note, ttl = R.string.empty_title, sub = R.string.empty_notes_sub;
+            if (!query.isEmpty()) {
+                icon = R.drawable.ic_search;
+                ttl = R.string.empty_search;
+                sub = 0;
+            } else if (Db.F_TRASH.equals(filter)) {
+                icon = R.drawable.ic_trash_sweep;
+                ttl = R.string.empty_trash_screen;
+                sub = 0;
+            } else if (Db.F_ARCHIVE.equals(filter)) {
+                icon = R.drawable.ic_archive;
+                ttl = R.string.empty_archive;
+                sub = 0;
+            } else if (Db.F_PINNED.equals(filter)) {
+                icon = R.drawable.ic_star;
+                ttl = R.string.f_pinned;
+                sub = 0;
+            } else if (Db.F_LIST.equals(filter)) {
+                icon = R.drawable.ic_checklist;
+                ttl = R.string.f_lists;
+                sub = 0;
+            }
+            emptyIcon.setImageResource(icon);
+            emptyTitle.setText(ttl);
+            empty.setText(sub == 0 ? "" : getString(sub));
+            empty.setVisibility(sub == 0 ? View.GONE : View.VISIBLE);
         }
     }
 
@@ -417,7 +445,8 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             t.setTextSize(16);
             t.setMaxLines(3);
             t.setEllipsize(TextUtils.TruncateAt.END);
-            t.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+            t.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+            t.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
             t.setTextColor(Ui.color(this, R.color.text_primary));
             card.addView(t);
         }
@@ -429,7 +458,8 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             b.setMaxLines(8);
             b.setEllipsize(TextUtils.TruncateAt.END);
             b.setLineSpacing(0, 1.1f);
-            b.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+            b.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+            b.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
             b.setTextColor(Ui.color(this, n.title.trim().isEmpty() ? R.color.text_primary : R.color.text_secondary));
             LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -447,7 +477,26 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         d.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
         d.setTextColor(Ui.color(this, R.color.text_hint));
         foot.addView(d, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        if (n.kind == Note.KIND_LIST) foot.addView(smallIcon(R.drawable.ic_checklist, R.color.text_hint));
+        if (n.kind == Note.KIND_LIST) {
+            int total = 0, done = 0;
+            for (Note.Item i : Note.items(n.body)) {
+                if (i.text.trim().isEmpty()) continue;
+                total++;
+                if (i.done) done++;
+            }
+            if (total > 0) {
+                TextView p = new TextView(this);
+                p.setText(getString(R.string.list_progress, done, total));
+                p.setTextSize(11);
+                p.setSingleLine(true);
+                boolean all = done == total;
+                p.setTextColor(Ui.color(this, all ? R.color.ok : R.color.text_hint));
+                LinearLayout.LayoutParams pl = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                pl.setMarginStart(Ui.dp(this, 6));
+                foot.addView(p, pl);
+            }
+        }
         if (n.pinned) foot.addView(smallIcon(R.drawable.ic_star, R.color.accent_text));
         LinearLayout.LayoutParams fl = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);

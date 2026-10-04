@@ -239,10 +239,13 @@ public class NoteEditorActivity extends AppCompatActivity {
     }
 
     private void updateMeta() {
-        meta.setText(persisted
+        String when = persisted
                 ? getString(R.string.edited, DateUtils.formatDateTime(this, note.updatedAt,
                 DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_MONTH))
-                : getString(R.string.new_note));
+                : getString(R.string.new_note);
+        String text = note.plainText().trim();
+        int words = text.isEmpty() ? 0 : text.split("\\s+").length;
+        meta.setText(words > 0 ? when + "  ·  " + getString(R.string.words, words) : when);
     }
 
     // ------------------------------------------------------------------ checklist rows
@@ -263,7 +266,9 @@ public class NoteEditorActivity extends AppCompatActivity {
         et.setTextSize(16);
         et.setHint(R.string.item_hint);
         et.setHintTextColor(Ui.color(this, R.color.text_hint));
-        et.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        // alignment follows the language of the text itself, so Arabic and English notes both read naturally
+        et.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+        et.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
         et.setRawInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         et.setImeOptions(EditorInfo.IME_ACTION_NEXT);
         et.setHorizontallyScrolling(false);

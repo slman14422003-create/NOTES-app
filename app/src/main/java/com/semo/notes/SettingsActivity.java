@@ -1,10 +1,6 @@
 package com.semo.notes;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,7 +9,6 @@ import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -110,6 +105,19 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
                             .putExtra(LoginActivity.EXTRA_FROM_APP, true))));
         }
 
+        // language
+        content.addView(Ui.sectionTitle(this, getString(R.string.sec_language)));
+        Row lang = new Row(R.drawable.ic_language, false, getString(R.string.language), Lang.label(this), false, true);
+        content.addView(Ui.rowView(this, content, lang, v -> Lang.choose(this)));
+
+        // updates
+        content.addView(Ui.sectionTitle(this, getString(R.string.sec_updates)));
+        content.addView(Ui.rowView(this, content,
+                new Row(R.drawable.ic_download, false, getString(R.string.upd_check),
+                        getString(R.string.upd_check_sub, Updater.installedName(this), Updater.installedCode(this)),
+                        false, true),
+                v -> startActivity(new Intent(this, UpdateActivity.class))));
+
         // sync
         if (cloud) {
             content.addView(Ui.sectionTitle(this, getString(R.string.sec_sync)));
@@ -137,13 +145,6 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
                 new Row(R.drawable.ic_download, false, getString(R.string.import_file), getString(R.string.import_file_sub),
                         false, false),
                 v -> importLauncher.launch(new String[]{"application/json", "text/plain", "application/octet-stream"})));
-
-        // firebase
-        content.addView(Ui.sectionTitle(this, getString(R.string.sec_firebase)));
-        content.addView(Ui.rowView(this, content,
-                new Row(R.drawable.ic_shield, false, getString(R.string.show_rules),
-                        getString(R.string.show_rules_sub, Cfg.PROJECT_ID), false, true),
-                v -> showRules()));
 
         // data
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_data)));
@@ -175,33 +176,6 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
                     .tint(Ui.color(this, R.color.bad));
             content.addView(Ui.rowView(this, content, out, v -> confirmSignOut()));
         }
-    }
-
-    // ------------------------------------------------------------------ rules
-
-    private void showRules() {
-        TextView t = new TextView(this);
-        t.setText(Rules.FIRESTORE);
-        t.setTypeface(Typeface.MONOSPACE);
-        t.setTextSize(11.5f);
-        t.setTextColor(Ui.color(this, R.color.text_secondary));
-        t.setTextDirection(View.TEXT_DIRECTION_LTR);
-        t.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
-        t.setTextIsSelectable(true);
-        int p = Ui.dp(this, 20);
-        t.setPadding(p, Ui.dp(this, 8), p, Ui.dp(this, 8));
-        ScrollView sv = new ScrollView(this);
-        sv.addView(t);
-        new Dlg(this)
-                .setTitle(R.string.sec_firebase)
-                .setView(sv)
-                .setPositiveButton(R.string.copy, (d, w) -> {
-                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                    if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("firestore.rules", Rules.FIRESTORE));
-                    Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton(R.string.close, null)
-                .show();
     }
 
     // ------------------------------------------------------------------ backup file

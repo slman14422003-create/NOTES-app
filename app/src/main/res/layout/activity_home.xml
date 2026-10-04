@@ -132,16 +132,48 @@
                 android:text="@string/empty_trash"
                 android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/empty"
+            <LinearLayout
+                android:id="@+id/emptyBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:lineSpacingMultiplier="1.2"
-                android:padding="40dp"
-                android:textColor="@color/text_hint"
-                android:textSize="15sp"
-                android:visibility="gone" />
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingStart="40dp"
+                android:paddingTop="48dp"
+                android:paddingEnd="40dp"
+                android:paddingBottom="24dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/emptyIcon"
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:background="@drawable/bg_circle_accent"
+                    android:importantForAccessibility="no"
+                    android:padding="22dp"
+                    android:src="@drawable/ic_note"
+                    android:tint="@color/accent_text" />
+
+                <TextView
+                    android:id="@+id/emptyTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:fontFamily="serif"
+                    android:gravity="center"
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:lineSpacingMultiplier="1.2"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
