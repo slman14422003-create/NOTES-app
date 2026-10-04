@@ -25,7 +25,14 @@ public final class Db extends SQLiteOpenHelper {
     }
 
     private Db(Context c) {
-        super(c, "notes.db", null, 1);
+        super(c, "notes.db", null, 2);
+    }
+
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        db.setForeignKeyConstraintsEnabled(false);
+        setWriteAheadLoggingEnabled(true); // readers never block the writer: smoother list while syncing
     }
 
     @Override
@@ -36,10 +43,16 @@ public final class Db extends SQLiteOpenHelper {
                 + "trashed INTEGER NOT NULL DEFAULT 0, purged INTEGER NOT NULL DEFAULT 0, "
                 + "created INTEGER NOT NULL, updated INTEGER NOT NULL, dirty INTEGER NOT NULL DEFAULT 0)");
         db.execSQL("CREATE INDEX idx_notes_updated ON notes(updated)");
+        db.execSQL("CREATE INDEX idx_notes_state ON notes(purged, archived, trashed, pinned, updated)");
+        db.execSQL("CREATE INDEX idx_notes_dirty ON notes(dirty)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
+        if (oldV < 2) {
+            db.execSQL("CREATE INDEX IF NOT EXISTS idx_notes_state ON notes(purged, archived, trashed, pinned, updated)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS idx_notes_dirty ON notes(dirty)");
+        }
     }
 
     private static final String COLS = "id,title,body,kind,color,pinned,archived,trashed,purged,created,updated,dirty";
@@ -147,7 +160,7 @@ public final class Db extends SQLiteOpenHelper {
         return query(null, null, "updated DESC");
     }
 
-    public synchronized List<Note> list(String filter, String q) {
+    private static String where(String filter, String q, List<String> args) {
         StringBuilder w = new StringBuilder("purged=0 AND ");
         switch (filter == null ? F_ALL : filter) {
             case F_PINNED:
@@ -165,18 +178,32 @@ public final class Db extends SQLiteOpenHelper {
             default:
                 w.append("archived=0 AND trashed=0");
         }
-        List<String> args = new ArrayList<>();
         if (q != null && !q.trim().isEmpty()) {
             String like = "%" + q.trim().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
             w.append(" AND (title LIKE ? ESCAPE '\\' OR body LIKE ? ESCAPE '\\')");
             args.add(like);
             args.add(like);
         }
-        return query(w.toString(), args.toArray(new String[0]), "pinned DESC, updated DESC");
+        return w.toString();
+    }
+
+    public List<Note> list(String filter, String q) {
+        return list(filter, q, 0);
+    }
+
+    /** {@code limit <= 0} = no limit. */
+    public synchronized List<Note> list(String filter, String q, int limit) {
+        List<String> args = new ArrayList<>();
+        String w = where(filter, q, args);
+        return query(w, args.toArray(new String[0]), "pinned DESC, updated DESC" + (limit > 0 ? " LIMIT " + limit : ""));
     }
 
     public synchronized int count(String filter) {
-        return list(filter, null).size();
+        List<String> args = new ArrayList<>();
+        String w = where(filter, null, args);
+        try (Cursor c = getReadableDatabase().rawQuery("SELECT COUNT(*) FROM notes WHERE " + w, args.toArray(new String[0]))) {
+            return c.moveToFirst() ? c.getInt(0) : 0;
+        }
     }
 
     private List<Note> query(String where, String[] args, String order) {

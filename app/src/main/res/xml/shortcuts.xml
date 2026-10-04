@@ -8,7 +8,7 @@
         android:shortcutLongLabel="@string/shortcut_note_long">
         <intent
             android:action="com.semo.notes.NEW"
-            android:targetClass="com.semo.notes.NoteEditorActivity"
+            android:targetClass="com.semo.notes.CaptureActivity"
             android:targetPackage="app.semo.notes" />
     </shortcut>
     <shortcut
@@ -19,7 +19,7 @@
         android:shortcutLongLabel="@string/shortcut_list_long">
         <intent
             android:action="com.semo.notes.NEW_LIST"
-            android:targetClass="com.semo.notes.NoteEditorActivity"
+            android:targetClass="com.semo.notes.CaptureActivity"
             android:targetPackage="app.semo.notes" />
     </shortcut>
 </shortcuts>

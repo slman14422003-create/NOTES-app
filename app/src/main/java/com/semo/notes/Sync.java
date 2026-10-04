@@ -1,6 +1,9 @@
 package com.semo.notes;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -53,11 +56,30 @@ public final class Sync {
         LISTENERS.remove(l);
     }
 
+    /** True when the device has a validated internet connection. */
+    public static boolean online(Context c) {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm == null) return true;
+            Network n = cm.getActiveNetwork();
+            if (n == null) return false;
+            NetworkCapabilities nc = cm.getNetworkCapabilities(n);
+            return nc != null && nc.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     /** Schedules a sync. {@code now=false} waits a moment so a burst of edits is uploaded once. */
     public static void request(Context ctx, boolean now) {
         final Context app = ctx.getApplicationContext();
         if (!Prefs.isCloud(app)) return;
         if (!now && !Prefs.autoSync(app)) return;
+        if (!online(app)) {
+            // offline: notes stay safe on the device and are uploaded when the connection returns
+            if (now) publish(ERROR, false, "NETWORK");
+            return;
+        }
         synchronized (Sync.class) {
             if (pending != null) MAIN.removeCallbacks(pending);
             pending = () -> EX.execute(() -> run(app));
@@ -84,7 +106,7 @@ public final class Sync {
             // an expired ID token is refreshed once and the whole sync is retried
             if (e.http == 401 || "UNAUTHENTICATED".equals(e.code)) {
                 try {
-                    Prefs.updateTokens(c, "", Prefs.refreshToken(c), 0);
+                    Prefs.expireIdToken();
                     boolean changed = syncOnce(c);
                     Prefs.setLastSync(c, System.currentTimeMillis());
                     publish(OK, changed, null);
@@ -93,15 +115,55 @@ public final class Sync {
                     e = e2;
                 }
             }
+            if (sessionDead(e.code)) {
+                // revoked / disabled / unreadable session: sign out (notes stay on the device) and ask to sign in again
+                Prefs.clearSession(c);
+                publish(ERROR, false, "SESSION_ENDED");
+                return;
+            }
             publish(ERROR, false, e.code);
         } catch (Exception e) {
             publish(ERROR, false, "UNKNOWN");
         }
     }
 
+    private static boolean sessionDead(String code) {
+        if (code == null) return false;
+        switch (code) {
+            case "NO_SESSION":
+            case "TOKEN_EXPIRED":
+            case "INVALID_REFRESH_TOKEN":
+            case "USER_NOT_FOUND":
+            case "USER_DISABLED":
+            case "INVALID_GRANT_TYPE":
+            case "MISSING_REFRESH_TOKEN":
+            case "UNAUTHENTICATED":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /** Called once from the Application: uploads pending notes as soon as the connection comes back. */
+    public static void watchNetwork(final Context ctx) {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm == null) return;
+            cm.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    request(ctx, false);
+                }
+            });
+        } catch (Exception ignored) {
+            // no network-state permission or restricted device: manual and on-start sync still work
+        }
+    }
+
     private static boolean syncOnce(Context c) throws Firebase.FbException {
         Db db = Db.get(c);
         String uid = Prefs.uid(c);
+        if (Prefs.ownerUid(c).isEmpty()) Prefs.setOwnerUid(c, uid); // sessions created before owners were tracked
         String token = Firebase.validToken(c);
 
         // 1) import: only what changed on the server since the last sync -------------------------

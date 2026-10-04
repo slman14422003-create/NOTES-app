@@ -223,6 +223,9 @@ public final class Updater {
                 in.publishedAt = r.isNull("published_at") ? r.optString("created_at") : r.optString("published_at");
                 in.prerelease = r.optBoolean("prerelease");
                 in.assetUrl = apk.optString("browser_download_url");
+                // only ever download from this repository's own release assets, over https
+                String expect = ("https://github.com/" + slug + "/releases/download/").toLowerCase(Locale.US);
+                if (!in.assetUrl.toLowerCase(Locale.US).startsWith(expect)) continue;
                 in.assetName = apk.optString("name");
                 in.assetSize = apk.optLong("size");
                 String vc = find(in.body, "versionCode\\s*[:=]\\s*(\\d+)");
@@ -277,6 +280,15 @@ public final class Updater {
         StringBuilder sb = new StringBuilder();
         for (byte b : md.digest()) sb.append(String.format(Locale.US, "%02x", b & 0xff));
         return sb.toString();
+    }
+
+    /** Removes leftovers of an earlier download (called at app start). */
+    public static void cleanup(Context c) {
+        try {
+            File[] f = new File(c.getCacheDir(), "apk").listFiles();
+            if (f != null) for (File x : f) if (System.currentTimeMillis() - x.lastModified() > 3600_000L) x.delete();
+        } catch (Exception ignored) {
+        }
     }
 
     public static File apkFile(Context c) {
@@ -346,16 +358,22 @@ public final class Updater {
             int flags = Build.VERSION.SDK_INT >= 28 ? PackageManager.GET_SIGNING_CERTIFICATES
                     : PackageManager.GET_SIGNATURES;
             PackageInfo archive = pm.getPackageArchiveInfo(apk.getAbsolutePath(), flags);
-            if (archive == null) return null; // cannot inspect: the system installer will still verify it
+            if (archive == null) return "PACKAGE";
             if (!c.getPackageName().equals(archive.packageName)) return "PACKAGE";
             PackageInfo installed = pm.getPackageInfo(c.getPackageName(), flags);
+            long newCode = Build.VERSION.SDK_INT >= 28 ? archive.getLongVersionCode() : archive.versionCode;
+            long curCode = Build.VERSION.SDK_INT >= 28 ? installed.getLongVersionCode() : installed.versionCode;
+            if (newCode <= curCode) return "DOWNGRADE"; // never install an older or identical build
             Set<String> a = certs(archive);
             Set<String> b = certs(installed);
-            if (a.isEmpty() || b.isEmpty()) return null;
+            if (a.isEmpty() || b.isEmpty()) {
+                // Android 7-8 cannot always read a package's certificates; the system installer still enforces them
+                return Build.VERSION.SDK_INT < 28 ? null : "SIGNATURE";
+            }
             for (String x : a) if (b.contains(x)) return null;
             return "SIGNATURE";
         } catch (Exception e) {
-            return null;
+            return "SIGNATURE"; // cannot verify -> do not install
         }
     }
 
@@ -408,6 +426,8 @@ public final class Updater {
                 return c.getString(R.string.upd_sig_bad);
             case "PACKAGE":
                 return c.getString(R.string.upd_pkg_bad);
+            case "DOWNGRADE":
+                return c.getString(R.string.upd_downgrade);
             default:
                 return c.getString(R.string.upd_error, String.valueOf(e.getMessage()));
         }

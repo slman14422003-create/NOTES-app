@@ -21,14 +21,26 @@ service cloud.firestore {
           && d.kind is int && d.kind >= 0 && d.kind <= 1
           && d.color is int && d.color >= 0 && d.color <= 20
           && d.pinned is bool && d.archived is bool && d.trashed is bool && d.purged is bool
-          && d.createdAt is int && d.updatedAt is int
+          && d.createdAt is int && d.createdAt > 0
+          && d.updatedAt is int && d.updatedAt >= d.createdAt
           && d.syncedAt == request.time;   // server time, set by the app with a REQUEST_TIME transform
     }
 
     match /users/{uid}/notes/{noteId} {
       allow read: if isOwner(uid);
-      allow create, update: if isOwner(uid) && noteId.size() <= 64 && validNote(request.resource.data);
-      allow delete: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+                    && noteId.matches('[A-Za-z0-9_-]{1,64}')
+                    && validNote(request.resource.data);
+
+      // creation time can never be rewritten, and a change must move updatedAt forward
+      allow update: if isOwner(uid)
+                    && validNote(request.resource.data)
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && request.resource.data.updatedAt >= resource.data.updatedAt;
+
+      // the app never deletes documents: permanent deletes are written as empty "purged" tombstones
+      allow delete: if false;
     }
 
     // Anything else: closed.

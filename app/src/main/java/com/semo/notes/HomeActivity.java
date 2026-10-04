@@ -32,14 +32,31 @@ import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import android.os.Handler;
+import android.os.Looper;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /** Main screen: search, quick-access tiles, filters, pinned + recent notes and a quick-capture bar. */
 public class HomeActivity extends AppCompatActivity implements Sync.Listener {
+    private static final int PAGE = 60;
+
     private Db db;
     private String filter = Db.F_ALL;
     private String query = "";
+    private int limit = PAGE;
+    private int reloadGen;
+    private final ExecutorService dbEx = Executors.newSingleThreadExecutor();
+    private final Handler ui = new Handler(Looper.getMainLooper());
+    private final Runnable reloadRun = this::reload;
+    private final Runnable hideUndo = () -> findViewById(R.id.undoBar).setVisibility(View.GONE);
+    private SwipeRefreshLayout refresh;
+    private Button btnMore;
 
     private LinearLayout gridPinned, gridAll, chipRow;
     private TextView secPinned, secAll, empty, emptyTitle, subtitle;
@@ -73,12 +90,28 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         settings.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         findViewById(R.id.btnA1).setVisibility(View.GONE);
         btnSync = findViewById(R.id.btnRefresh);
-        btnSync.setOnClickListener(v -> {
-            if (Prefs.isCloud(this)) Sync.request(this, true);
-            else startActivity(new Intent(this, LoginActivity.class).putExtra(LoginActivity.EXTRA_FROM_APP, true));
-        });
+        btnSync.setOnClickListener(v -> Sync.request(this, true));
         Ui.press(this, settings);
         Ui.press(this, btnSync);
+
+        refresh = findViewById(R.id.refresh);
+        refresh.setProgressBackgroundColorSchemeColor(Ui.color(this, R.color.surface));
+        refresh.setColorSchemeColors(Ui.color(this, R.color.accent_text));
+        refresh.setOnRefreshListener(() -> {
+            if (Prefs.isCloud(this) && Sync.online(this)) Sync.request(this, true);
+            else refresh.setRefreshing(false);
+        });
+        btnMore = findViewById(R.id.btnMore);
+        btnMore.setOnClickListener(v -> {
+            limit += PAGE;
+            reload();
+        });
+        findViewById(R.id.undoBtn).setOnClickListener(v -> {
+            NoteActions.undo(this);
+            ui.removeCallbacks(hideUndo);
+            hideUndo.run();
+            reload();
+        });
 
         gridPinned = findViewById(R.id.gridPinned);
         gridAll = findViewById(R.id.gridAll);
@@ -103,7 +136,9 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             @Override
             public void afterTextChanged(Editable s) {
                 query = s.toString().trim();
-                reload();
+                limit = PAGE;
+                ui.removeCallbacks(reloadRun);
+                ui.postDelayed(reloadRun, 160); // wait for a pause in typing before querying
             }
         });
         search.setOnEditorActionListener((v, action, e) -> {
@@ -153,8 +188,14 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     @Override
     protected void onStart() {
         super.onStart();
+        if (!Prefs.isCloud(this)) { // signed out or the session ended: Google sign-in is the only way in
+            startActivity(new Intent(this, LoginActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+            finish();
+            return;
+        }
         Sync.listen(this);
-        if (Prefs.isCloud(this)) Sync.request(this, true); // automatic import + export on every start
+        Sync.request(this, true); // automatic import + export on every start
         reload();
         refreshSyncUi();
         Updater.autoCheck(this); // quiet check for a newer release on GitHub
@@ -167,7 +208,22 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ui.removeCallbacksAndMessages(null);
+        dbEx.shutdownNow();
+    }
+
+    @Override
     public void onSync(int state, boolean changed, String error) {
+        if (state != Sync.RUNNING) refresh.setRefreshing(false);
+        if ("SESSION_ENDED".equals(error)) {
+            Toast.makeText(this, R.string.err_session, Toast.LENGTH_LONG).show();
+            startActivity(new Intent(this, LoginActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+            finish();
+            return;
+        }
         refreshSyncUi();
         if (changed) reload();
     }
@@ -317,14 +373,43 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
 
     private void setFilter(String f) {
         filter = f;
+        limit = PAGE;
         for (int i = 0; i < chips.size(); i++) Ui.setChip(this, chips.get(i), FILTERS[i].equals(filter));
         reload();
     }
 
     // ------------------------------------------------------------------ list
 
+    /** Reads from SQLite on a background thread and draws the result only if it is still the latest request. */
     private void reload() {
-        List<Note> list = db.list(filter, query);
+        final int gen = ++reloadGen;
+        final String f = filter, q = query;
+        final int lim = limit;
+        dbEx.execute(() -> {
+            final List<Note> rows = db.list(f, q, lim + 1);
+            ui.post(() -> {
+                if (gen != reloadGen || isFinishing() || isDestroyed()) return;
+                render(rows, rows.size() > lim ? rows.subList(0, lim) : rows, rows.size() > lim);
+                maybeShowUndo();
+            });
+        });
+    }
+
+    private void maybeShowUndo() {
+        if (NoteActions.undoId == null || NoteActions.undoShown) return;
+        if (System.currentTimeMillis() - NoteActions.undoAt > 6000) {
+            NoteActions.undoId = null;
+            return;
+        }
+        NoteActions.undoShown = true;
+        ((TextView) findViewById(R.id.undoMsg)).setText(NoteActions.undoKind == 0
+                ? R.string.undo_trash : R.string.undo_archive);
+        findViewById(R.id.undoBar).setVisibility(View.VISIBLE);
+        ui.removeCallbacks(hideUndo);
+        ui.postDelayed(hideUndo, 5000);
+    }
+
+    private void render(List<Note> all, List<Note> list, boolean hasMore) {
         boolean grouped = Db.F_ALL.equals(filter) && query.isEmpty();
         List<Note> pinned = new ArrayList<>();
         List<Note> others = new ArrayList<>();
@@ -332,6 +417,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             if (grouped && n.pinned) pinned.add(n);
             else others.add(n);
         }
+        btnMore.setVisibility(hasMore ? View.VISIBLE : View.GONE);
         secPinned.setVisibility(pinned.isEmpty() ? View.GONE : View.VISIBLE);
         gridPinned.setVisibility(pinned.isEmpty() ? View.GONE : View.VISIBLE);
         fill(gridPinned, pinned);
@@ -343,7 +429,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         else if (Db.F_ARCHIVE.equals(filter)) title = R.string.f_archive;
         else if (Db.F_TRASH.equals(filter)) title = R.string.f_trash;
         else title = pinned.isEmpty() ? R.string.sec_notes : R.string.sec_recent;
-        secAll.setText(getString(title) + (others.isEmpty() ? "" : "  ·  " + others.size()));
+        secAll.setText(getString(title) + (others.isEmpty() ? "" : "  ·  " + others.size() + (hasMore ? "+" : "")));
         secAll.setVisibility(others.isEmpty() ? View.GONE : View.VISIBLE);
         gridAll.setVisibility(others.isEmpty() ? View.GONE : View.VISIBLE);
         fill(gridAll, others);

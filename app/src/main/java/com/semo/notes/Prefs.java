@@ -3,20 +3,25 @@ package com.semo.notes;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-/** Small key-value store: sign-in session, sync switches and the last sync time. */
+/** Small key-value store: sign-in session, sync switches, language, privacy and update settings. */
 public final class Prefs {
     private Prefs() {
     }
 
     public static final String MODE_NONE = "";
     public static final String MODE_CLOUD = "cloud";
-    public static final String MODE_LOCAL = "local";
+
+    // The short-lived ID token only lives in memory; the refresh token is stored encrypted (see Vault).
+    private static volatile String memIdToken = "";
+    private static volatile long memExpiresAt = 0;
+    private static volatile String memRefresh = "";
 
     private static SharedPreferences sp(Context c) {
         return c.getApplicationContext().getSharedPreferences("notes_prefs", Context.MODE_PRIVATE);
     }
 
-    /** "" = first launch, "cloud" = signed in to Firebase, "local" = notes stay on the device. */
+    // ------------------------------------------------------------------ session
+
     public static String mode(Context c) {
         return sp(c).getString("mode", MODE_NONE);
     }
@@ -25,36 +30,45 @@ public final class Prefs {
         return MODE_CLOUD.equals(mode(c)) && !uid(c).isEmpty();
     }
 
-    public static void setLocalOnly(Context c) {
-        sp(c).edit().putString("mode", MODE_LOCAL).apply();
-    }
-
     public static void setSession(Context c, String uid, String email, boolean anonymous,
                                   String idToken, String refreshToken, long expiresInSec) {
+        memIdToken = idToken == null ? "" : idToken;
+        memExpiresAt = System.currentTimeMillis() + expiresInSec * 1000L;
+        memRefresh = refreshToken == null ? "" : refreshToken;
         sp(c).edit()
                 .putString("mode", MODE_CLOUD)
                 .putString("uid", uid)
                 .putString("email", email == null ? "" : email)
                 .putBoolean("anon", anonymous)
-                .putString("idToken", idToken)
-                .putString("refreshToken", refreshToken)
-                .putLong("expiresAt", System.currentTimeMillis() + expiresInSec * 1000L)
+                .putString("rt", Vault.encrypt(memRefresh))
+                .remove("refreshToken").remove("idToken").remove("expiresAt")
                 .apply();
     }
 
     public static void updateTokens(Context c, String idToken, String refreshToken, long expiresInSec) {
-        sp(c).edit()
-                .putString("idToken", idToken)
-                .putString("refreshToken", refreshToken)
-                .putLong("expiresAt", System.currentTimeMillis() + expiresInSec * 1000L)
-                .apply();
+        memIdToken = idToken == null ? "" : idToken;
+        memExpiresAt = System.currentTimeMillis() + expiresInSec * 1000L;
+        if (refreshToken != null && !refreshToken.isEmpty() && !refreshToken.equals(memRefresh)) {
+            memRefresh = refreshToken;
+            sp(c).edit().putString("rt", Vault.encrypt(refreshToken)).apply();
+        }
+    }
+
+    /** Forces the next request to fetch a fresh ID token. */
+    public static void expireIdToken() {
+        memIdToken = "";
+        memExpiresAt = 0;
     }
 
     public static void clearSession(Context c) {
+        memIdToken = "";
+        memExpiresAt = 0;
+        memRefresh = "";
         sp(c).edit()
                 .putString("mode", MODE_NONE)
-                .remove("uid").remove("email").remove("anon")
-                .remove("idToken").remove("refreshToken").remove("expiresAt").remove("lastSync").remove("cursor")
+                .remove("uid").remove("email").remove("anon").remove("rt")
+                .remove("refreshToken").remove("idToken").remove("expiresAt")
+                .remove("lastSync").remove("cursor")
                 .apply();
     }
 
@@ -71,16 +85,42 @@ public final class Prefs {
     }
 
     public static String idToken(Context c) {
-        return sp(c).getString("idToken", "");
-    }
-
-    public static String refreshToken(Context c) {
-        return sp(c).getString("refreshToken", "");
+        return memIdToken;
     }
 
     public static long expiresAt(Context c) {
-        return sp(c).getLong("expiresAt", 0);
+        return memExpiresAt;
     }
+
+    public static synchronized String refreshToken(Context c) {
+        if (!memRefresh.isEmpty()) return memRefresh;
+        SharedPreferences p = sp(c);
+        String v = Vault.decrypt(p.getString("rt", ""));
+        if (v.isEmpty()) {
+            // sessions created by an older version kept the token in plain text: encrypt it once
+            String legacy = p.getString("refreshToken", "");
+            if (!legacy.isEmpty()) {
+                v = legacy;
+                p.edit().putString("rt", Vault.encrypt(legacy)).remove("refreshToken").apply();
+            }
+        }
+        memRefresh = v;
+        return v;
+    }
+
+    /**
+     * The account the notes stored on this device belong to ("" = written before any account existed).
+     * Used so one person's notes are never uploaded into another person's account.
+     */
+    public static String ownerUid(Context c) {
+        return sp(c).getString("owner", "");
+    }
+
+    public static void setOwnerUid(Context c, String uid) {
+        sp(c).edit().putString("owner", uid == null ? "" : uid).apply();
+    }
+
+    // ------------------------------------------------------------------ settings
 
     /** "" = follow the system, "ar" or "en". */
     public static String language(Context c) {
@@ -89,6 +129,15 @@ public final class Prefs {
 
     public static void setLanguage(Context c, String v) {
         sp(c).edit().putString("lang", v == null ? "" : v).apply();
+    }
+
+    /** Blocks screenshots and hides the app content in the recent-apps switcher. */
+    public static boolean secureScreen(Context c) {
+        return sp(c).getBoolean("secure", false);
+    }
+
+    public static void setSecureScreen(Context c, boolean on) {
+        sp(c).edit().putBoolean("secure", on).apply();
     }
 
     public static boolean autoSync(Context c) {

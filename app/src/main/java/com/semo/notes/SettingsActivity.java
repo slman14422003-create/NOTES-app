@@ -90,25 +90,33 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
     private void build() {
         content.removeAllViews();
         final boolean cloud = Prefs.isCloud(this);
+        if (!cloud) {
+            startActivity(new Intent(this, LoginActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+            finish();
+            return;
+        }
 
         // account
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_account)));
-        if (cloud) {
-            String title = Prefs.anonymous(this) ? getString(R.string.guest) : Prefs.email(this);
-            String sub = Prefs.anonymous(this) ? getString(R.string.guest_sub) : getString(R.string.signed_in);
-            content.addView(Ui.rowView(this, content, new Row(R.drawable.ic_user, false, title, sub, false, false), null));
-        } else {
-            content.addView(Ui.rowView(this, content,
-                    new Row(R.drawable.ic_user, false, getString(R.string.status_local), getString(R.string.sign_in_hint),
-                            false, true),
-                    v -> startActivity(new Intent(this, LoginActivity.class)
-                            .putExtra(LoginActivity.EXTRA_FROM_APP, true))));
-        }
+        String title = Prefs.anonymous(this) ? getString(R.string.guest)
+                : (Prefs.email(this).isEmpty() ? getString(R.string.signed_in) : Prefs.email(this));
+        String sub = Prefs.anonymous(this) ? getString(R.string.guest_sub) : getString(R.string.signed_in);
+        content.addView(Ui.rowView(this, content, new Row(R.drawable.ic_user, false, title, sub, false, false), null));
 
         // language
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_language)));
         Row lang = new Row(R.drawable.ic_language, false, getString(R.string.language), Lang.label(this), false, true);
         content.addView(Ui.rowView(this, content, lang, v -> Lang.choose(this)));
+
+        // privacy
+        content.addView(Ui.sectionTitle(this, getString(R.string.sec_privacy)));
+        Ui.Toggle secure = Ui.toggle(this, content, R.string.privacy_screen, R.string.privacy_screen_sub, Prefs.secureScreen(this));
+        secure.onChange((b, on) -> {
+            Prefs.setSecureScreen(this, on);
+            if (on) getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE);
+            else getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE);
+        });
+        content.addView(secure.view);
 
         // updates
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_updates)));
@@ -234,7 +242,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
                     JSONObject o = arr.getJSONObject(i);
                     Note n = new Note();
                     String id = o.optString("id", "");
-                    if (!id.isEmpty() && id.length() <= 64 && !id.contains("/")) n.id = id;
+                    if (id.matches("[A-Za-z0-9_-]{1,64}")) n.id = id;
                     n.title = clip(o.optString("title", ""), 300);
                     n.body = clip(o.optString("body", ""), 100_000);
                     n.kind = o.optInt("kind", 0) == 1 ? 1 : 0;
@@ -244,8 +252,11 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
                     n.trashed = o.optBoolean("trashed", false);
                     n.createdAt = o.optLong("createdAt", System.currentTimeMillis());
                     n.updatedAt = o.optLong("updatedAt", n.createdAt);
+                    if (n.createdAt <= 0) n.createdAt = System.currentTimeMillis();
+                    if (n.updatedAt < n.createdAt) n.updatedAt = n.createdAt; // required by the cloud rules
                     if (n.isEmpty()) continue;
                     Note local = db.get(n.id);
+                    if (local != null) n.createdAt = local.createdAt; // the cloud rules keep createdAt fixed
                     if (local == null || n.updatedAt > local.updatedAt) {
                         db.putImported(n);
                         added++;
@@ -286,8 +297,12 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
 
     private void signOut(boolean wipe) {
         Prefs.clearSession(this);
-        if (wipe) db.wipeAll();
-        else db.markAllDirty();
+        if (wipe) {
+            db.wipeAll();
+            Prefs.setOwnerUid(this, ""); // nothing on the device belongs to anyone now
+        } else {
+            db.markAllDirty();           // notes stay and remain owned by the account that just signed out
+        }
         Intent i = new Intent(this, LoginActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(i);

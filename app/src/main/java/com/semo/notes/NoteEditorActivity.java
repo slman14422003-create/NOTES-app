@@ -39,6 +39,7 @@ public class NoteEditorActivity extends AppCompatActivity {
     public static final String EXTRA_ID = "id";
     public static final String EXTRA_KIND = "kind";
     public static final String EXTRA_INIT = "init";
+    public static final String EXTRA_TITLE = "title";
     public static final String ACTION_NEW = "com.semo.notes.NEW";
     public static final String ACTION_NEW_LIST = "com.semo.notes.NEW_LIST";
 
@@ -144,24 +145,15 @@ public class NoteEditorActivity extends AppCompatActivity {
             }
         }
         note = new Note();
-        String action = in.getAction();
         int kind = in.getIntExtra(EXTRA_KIND, Note.KIND_TEXT);
-        if (ACTION_NEW_LIST.equals(action)) kind = Note.KIND_LIST;
-        String init = in.getStringExtra(EXTRA_INIT);
-        if (Intent.ACTION_SEND.equals(action) && "text/plain".equals(in.getType())) {
-            // shared from another app ("Share" -> Notes)
-            CharSequence t = in.getCharSequenceExtra(Intent.EXTRA_TEXT);
-            CharSequence s = in.getCharSequenceExtra(Intent.EXTRA_SUBJECT);
-            if (t != null) init = t.toString();
-            if (s != null) note.title = s.toString();
-            kind = Note.KIND_TEXT;
-        }
         note.kind = kind == Note.KIND_LIST ? Note.KIND_LIST : Note.KIND_TEXT;
+        String title = in.getStringExtra(EXTRA_TITLE);
+        if (title != null) note.title = title.length() > MAX_TITLE ? title.substring(0, MAX_TITLE) : title;
+        String init = in.getStringExtra(EXTRA_INIT);
         if (init != null) {
             if (init.length() > MAX_BODY) init = init.substring(0, MAX_BODY);
             note.body = note.kind == Note.KIND_LIST ? Note.textToList(init) : init;
         }
-        if (note.title.length() > MAX_TITLE) note.title = note.title.substring(0, MAX_TITLE);
     }
 
     private void bindAll() {

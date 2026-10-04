@@ -97,6 +97,7 @@ dependencies {
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.24')
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.core:core-splashscreen:1.0.1'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     // Sign in with Google (Credential Manager) - the Google ID token is exchanged for a Firebase session over REST
     implementation 'androidx.credentials:credentials:1.5.0'
     implementation 'androidx.credentials:credentials-play-services-auth:1.5.0'

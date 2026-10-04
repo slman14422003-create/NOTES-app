@@ -15,6 +15,29 @@ public final class NoteActions {
     private NoteActions() {
     }
 
+    /** Last "moved to trash / archived" action, offered as an Undo bar on the home screen for a few seconds. */
+    public static String undoId;
+    public static int undoKind; // 0 = trash, 1 = archive
+    public static long undoAt;
+    public static boolean undoShown;
+
+    private static void markUndo(Note n, int kind) {
+        undoId = n.id;
+        undoKind = kind;
+        undoAt = System.currentTimeMillis();
+        undoShown = false;
+    }
+
+    public static void undo(Context c) {
+        if (undoId == null) return;
+        Note n = Db.get(c).get(undoId);
+        undoId = null;
+        if (n == null || n.purged) return;
+        if (undoKind == 0) n.trashed = false;
+        else n.archived = false;
+        save(c, n);
+    }
+
     public static void save(Context c, Note n) {
         Db.get(c).saveLocal(n);
         Sync.request(c, false);
@@ -28,13 +51,17 @@ public final class NoteActions {
 
     public static void toggleArchive(Context c, Note n) {
         n.archived = !n.archived;
-        if (n.archived) n.pinned = false;
+        if (n.archived) {
+            n.pinned = false;
+            markUndo(n, 1);
+        }
         save(c, n);
     }
 
     public static void trash(Context c, Note n) {
         n.trashed = true;
         n.pinned = false;
+        markUndo(n, 0);
         save(c, n);
     }
 

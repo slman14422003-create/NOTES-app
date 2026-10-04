@@ -116,14 +116,6 @@ public final class Firebase {
     public static String friendly(Context c, String code) {
         if (code == null) code = "";
         switch (code) {
-            case "EMAIL_EXISTS":
-                return c.getString(R.string.err_email_exists);
-            case "INVALID_LOGIN_CREDENTIALS":
-            case "INVALID_PASSWORD":
-            case "EMAIL_NOT_FOUND":
-                return c.getString(R.string.err_bad_login);
-            case "WEAK_PASSWORD":
-                return c.getString(R.string.err_weak_pw);
             case "CONFIGURATION_NOT_FOUND":
                 return c.getString(R.string.err_config);
             case "INVALID_IDP_RESPONSE":
@@ -132,15 +124,13 @@ public final class Firebase {
             case "OPERATION_NOT_ALLOWED":
             case "ADMIN_ONLY_OPERATION":
                 return c.getString(R.string.err_not_allowed);
-            case "INVALID_EMAIL":
-            case "MISSING_EMAIL":
-                return c.getString(R.string.err_invalid_email);
             case "TOO_MANY_ATTEMPTS_TRY_LATER":
                 return c.getString(R.string.err_too_many);
             case "NETWORK":
                 return c.getString(R.string.err_network);
             case "PERMISSION_DENIED":
                 return c.getString(R.string.err_permission);
+            case "SESSION_ENDED":
             case "UNAUTHENTICATED":
             case "NO_SESSION":
             case "TOKEN_EXPIRED":
@@ -178,32 +168,6 @@ public final class Firebase {
         return s;
     }
 
-    public static Session signUp(String email, String password) throws FbException {
-        try {
-            return authCall("signUp", new JSONObject().put("email", email).put("password", password)
-                    .put("returnSecureToken", true), false);
-        } catch (JSONException e) {
-            throw new FbException("BAD_REQUEST", 0, e.getMessage());
-        }
-    }
-
-    public static Session signIn(String email, String password) throws FbException {
-        try {
-            return authCall("signInWithPassword", new JSONObject().put("email", email).put("password", password)
-                    .put("returnSecureToken", true), false);
-        } catch (JSONException e) {
-            throw new FbException("BAD_REQUEST", 0, e.getMessage());
-        }
-    }
-
-    public static Session signInAnonymously() throws FbException {
-        try {
-            return authCall("signUp", new JSONObject().put("returnSecureToken", true), true);
-        } catch (JSONException e) {
-            throw new FbException("BAD_REQUEST", 0, e.getMessage());
-        }
-    }
-
     /** Exchanges a Google ID token (from Credential Manager) for a Firebase session. */
     public static Session signInWithGoogle(String googleIdToken) throws FbException {
         try {
@@ -212,16 +176,6 @@ public final class Firebase {
                     .put("requestUri", "http://localhost")
                     .put("returnIdpCredential", true)
                     .put("returnSecureToken", true), false);
-        } catch (JSONException e) {
-            throw new FbException("BAD_REQUEST", 0, e.getMessage());
-        }
-    }
-
-    public static void sendPasswordReset(String email) throws FbException {
-        try {
-            json(call("POST", Cfg.AUTH + "sendOobCode?key=" + Cfg.API_KEY,
-                    new JSONObject().put("requestType", "PASSWORD_RESET").put("email", email).toString(),
-                    "application/json", null));
         } catch (JSONException e) {
             throw new FbException("BAD_REQUEST", 0, e.getMessage());
         }
@@ -353,8 +307,10 @@ public final class Firebase {
         n.id = name.substring(name.lastIndexOf('/') + 1);
         n.title = str(f, "title");
         n.body = str(f, "body");
-        n.kind = (int) num(f, "kind");
-        n.color = (int) num(f, "color");
+        if (n.title.length() > 500) n.title = n.title.substring(0, 500);
+        if (n.body.length() > 200_000) n.body = n.body.substring(0, 200_000);
+        n.kind = num(f, "kind") == 1 ? 1 : 0;
+        n.color = (int) Math.max(0, Math.min(Palette.CARD.length - 1, num(f, "color")));
         n.pinned = bool(f, "pinned");
         n.archived = bool(f, "archived");
         n.trashed = bool(f, "trashed");

@@ -20,6 +20,8 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         Lang.apply(this);
+        Updater.cleanup(this);
+        Sync.watchNetwork(this);
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(Activity a, Bundle b) {
@@ -30,6 +32,9 @@ public class App extends Application {
                 View root = a.getWindow().getDecorView();
                 // ignore touches while another window (an overlay) covers the app: tapjacking protection
                 root.setFilterTouchesWhenObscured(true);
+                // optional privacy mode: no screenshots, blank preview in the recent-apps list
+                if (Prefs.secureScreen(a)) a.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+                else a.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
                 if (Build.VERSION.SDK_INT < 35) return;
                 View content = a.findViewById(android.R.id.content);
                 if (content == null || content.getTag(R.id.tag_insets) != null) return;

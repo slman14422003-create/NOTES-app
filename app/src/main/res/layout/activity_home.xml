@@ -15,11 +15,16 @@
         android:indeterminate="true"
         android:visibility="invisible" />
 
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refresh"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
     <ScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingBottom="12dp"
         android:scrollbars="none">
@@ -122,6 +127,17 @@
                 android:orientation="horizontal" />
 
             <Button
+                android:id="@+id/btnMore"
+                style="@style/BtnSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="14dp"
+                android:text="@string/show_more"
+                android:visibility="gone" />
+
+            <Button
                 android:id="@+id/btnEmptyTrash"
                 style="@style/BtnSecondary"
                 android:layout_width="match_parent"
@@ -176,6 +192,45 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- undo bar: shown for a few seconds after moving a note to the trash / archive -->
+    <LinearLayout
+        android:id="@+id/undoBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_card"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/undoMsg"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAlignment="viewStart"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/undoBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:minHeight="48dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/undo"
+            android:textColor="@color/accent_text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <!-- quick capture: type, press send, the note is saved (and synced) -->
     <LinearLayout

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- HTTPS only, and only the system certificate authorities (certificates a user or malware
-     installed on the device cannot be used to intercept the GitHub token). -->
+     installed on the device cannot be used to intercept the sign-in session). -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>

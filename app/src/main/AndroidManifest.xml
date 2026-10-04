@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
@@ -39,12 +40,21 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize|stateHidden" />
 
-        <!-- Also receives text shared from other apps ("Share" -> My Notes) -->
+        <!-- Private editor: other apps cannot start it. -->
         <activity
             android:name=".NoteEditorActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- The only public doorway: "Share -> My Notes" and the two launcher shortcuts.
+             It forwards a bounded amount of plain text to the private editor. -->
+        <activity
+            android:name=".CaptureActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
