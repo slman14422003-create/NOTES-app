@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_note"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_note"
+        android:shortcutShortLabel="@string/shortcut_note"
+        android:shortcutLongLabel="@string/shortcut_note_long">
+        <intent
+            android:action="com.semo.notes.NEW"
+            android:targetClass="com.semo.notes.NoteEditorActivity"
+            android:targetPackage="app.semo.notes" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="new_list"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_list"
+        android:shortcutShortLabel="@string/shortcut_list"
+        android:shortcutLongLabel="@string/shortcut_list_long">
+        <intent
+            android:action="com.semo.notes.NEW_LIST"
+            android:targetClass="com.semo.notes.NoteEditorActivity"
+            android:targetPackage="app.semo.notes" />
+    </shortcut>
+</shortcuts>

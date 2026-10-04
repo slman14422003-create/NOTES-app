@@ -1,0 +1,39 @@
+rules_version = '2';
+
+// Notes app - Cloud Firestore security rules.
+// Every note lives at  users/{uid}/notes/{noteId}  and can only be read or written by the signed-in
+// user whose uid matches {uid}. Everything else in the database is closed.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Shape of a note document: exactly these fields, with these types and sizes.
+    function validNote(d) {
+      return d.keys().hasOnly(['title', 'body', 'kind', 'color', 'pinned', 'archived', 'trashed',
+                               'purged', 'createdAt', 'updatedAt', 'syncedAt'])
+          && d.keys().hasAll(['title', 'body', 'kind', 'color', 'pinned', 'archived', 'trashed',
+                              'purged', 'createdAt', 'updatedAt', 'syncedAt'])
+          && d.title is string && d.title.size() <= 500
+          && d.body is string && d.body.size() <= 200000
+          && d.kind is int && d.kind >= 0 && d.kind <= 1
+          && d.color is int && d.color >= 0 && d.color <= 20
+          && d.pinned is bool && d.archived is bool && d.trashed is bool && d.purged is bool
+          && d.createdAt is int && d.updatedAt is int
+          && d.syncedAt == request.time;   // server time, set by the app with a REQUEST_TIME transform
+    }
+
+    match /users/{uid}/notes/{noteId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && noteId.size() <= 64 && validNote(request.resource.data);
+      allow delete: if isOwner(uid);
+    }
+
+    // Anything else: closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
