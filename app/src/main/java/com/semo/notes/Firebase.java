@@ -124,6 +124,11 @@ public final class Firebase {
                 return c.getString(R.string.err_bad_login);
             case "WEAK_PASSWORD":
                 return c.getString(R.string.err_weak_pw);
+            case "CONFIGURATION_NOT_FOUND":
+                return c.getString(R.string.err_config);
+            case "INVALID_IDP_RESPONSE":
+            case "INVALID_CREDENTIAL":
+                return c.getString(R.string.err_google_config);
             case "OPERATION_NOT_ALLOWED":
             case "ADMIN_ONLY_OPERATION":
                 return c.getString(R.string.err_not_allowed);
@@ -194,6 +199,19 @@ public final class Firebase {
     public static Session signInAnonymously() throws FbException {
         try {
             return authCall("signUp", new JSONObject().put("returnSecureToken", true), true);
+        } catch (JSONException e) {
+            throw new FbException("BAD_REQUEST", 0, e.getMessage());
+        }
+    }
+
+    /** Exchanges a Google ID token (from Credential Manager) for a Firebase session. */
+    public static Session signInWithGoogle(String googleIdToken) throws FbException {
+        try {
+            return authCall("signInWithIdp", new JSONObject()
+                    .put("postBody", "id_token=" + enc(googleIdToken) + "&providerId=google.com")
+                    .put("requestUri", "http://localhost")
+                    .put("returnIdpCredential", true)
+                    .put("returnSecureToken", true), false);
         } catch (JSONException e) {
             throw new FbException("BAD_REQUEST", 0, e.getMessage());
         }

@@ -118,4 +118,10 @@
     <string name="shortcut_note_long">ملاحظة جديدة</string>
     <string name="shortcut_list">قائمة</string>
     <string name="shortcut_list_long">قائمة مهام جديدة</string>
+    <string name="continue_google">المتابعة بحساب Google</string>
+    <string name="err_config">إعداد Firebase ناقص: افتح Firebase Console ← Authentication واضغط «البدء / Get started» ثم فعّل طرق تسجيل الدخول (Email/Password و Google و Anonymous)</string>
+    <string name="err_google_missing">لم يُضبط معرّف عميل الويب (Web client ID) لتسجيل Google. راجع README</string>
+    <string name="err_google_none">لا يوجد حساب Google على هذا الجهاز، أضف حسابًا من إعدادات الهاتف ثم أعد المحاولة</string>
+    <string name="err_google_failed">تعذّر تسجيل الدخول بـ Google (%s). تحقق من تسجيل بصمة SHA-1 وتطبيق الأندرويد في Firebase</string>
+    <string name="err_google_config">رفض Firebase بيانات Google: تأكد أن معرّف عميل الويب من نفس المشروع وأن مزوّد Google مفعّل</string>
 </resources>

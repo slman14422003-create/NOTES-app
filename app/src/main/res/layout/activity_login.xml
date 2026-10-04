@@ -136,11 +136,19 @@
         </LinearLayout>
 
         <Button
-            android:id="@+id/btnGuest"
+            android:id="@+id/btnGoogle"
             style="@style/BtnSecondary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:text="@string/continue_google" />
+
+        <Button
+            android:id="@+id/btnGuest"
+            style="@style/BtnSecondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="@string/continue_guest" />
 
         <Button

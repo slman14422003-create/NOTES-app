@@ -162,6 +162,7 @@ jobs:
       - name: Build APK
         env:
           VERSION_CODE_OVERRIDE: ${{ steps.meta.outputs.version_code }}
+          WEB_CLIENT_ID: ${{ secrets.WEB_CLIENT_ID }}
         run: |
           if [ "$BUILD_TYPE" = "release" ]; then
             gradle assembleRelease --stacktrace --warning-mode all

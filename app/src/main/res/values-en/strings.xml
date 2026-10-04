@@ -118,4 +118,10 @@
     <string name="shortcut_note_long">New note</string>
     <string name="shortcut_list">List</string>
     <string name="shortcut_list_long">New checklist</string>
+    <string name="continue_google">Continue with Google</string>
+    <string name="err_config">Firebase is not set up yet: open Firebase Console → Authentication, press “Get started”, then enable the sign-in methods (Email/Password, Google, Anonymous)</string>
+    <string name="err_google_missing">The Web client ID for Google sign-in is not set. See the README</string>
+    <string name="err_google_none">No Google account on this device. Add one in the phone settings and try again</string>
+    <string name="err_google_failed">Google sign-in failed (%s). Check that the SHA-1 and the Android app are registered in Firebase</string>
+    <string name="err_google_config">Firebase rejected the Google credential: make sure the Web client ID is from this project and the Google provider is enabled</string>
 </resources>
