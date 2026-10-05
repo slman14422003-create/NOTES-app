@@ -20,6 +20,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         Lang.apply(this);
+        Firebase.init(this);
         Updater.cleanup(this);
         Sync.watchNetwork(this);
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {

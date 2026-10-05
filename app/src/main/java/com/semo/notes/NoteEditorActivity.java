@@ -62,6 +62,7 @@ public class NoteEditorActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_editor);
         db = Db.get(this);
 
@@ -414,6 +415,7 @@ public class NoteEditorActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        if (titleEt == null) return; // blocked by the integrity check
         saveNow(isFinishing());
     }
 }

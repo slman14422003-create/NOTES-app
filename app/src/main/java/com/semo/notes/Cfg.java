@@ -1,10 +1,11 @@
 package com.semo.notes;
 
 /**
- * Firebase web configuration (Project settings -> General -> Your apps).
- * The app talks to Firebase through its public REST APIs, so no google-services.json and no
- * Firebase SDK are needed. These values are identifiers, not secrets: what protects the data is
- * the Firestore security rules (firebase/firestore.rules) and the signed-in user.
+ * Firebase configuration. The values are not kept as plain strings in the code: they are generated into
+ * {@code Secrets} at build time (scrambled with a per-build key), see app/build.gradle.
+ * They are identifiers, not secrets: what protects the data is the Firestore security rules
+ * (firebase/firestore.rules), the signed-in Google account and the API-key restrictions
+ * (see firebase/SECURITY.md).
  */
 public final class Cfg {
     private Cfg() {
@@ -13,23 +14,32 @@ public final class Cfg {
     /** Fallback "owner/repo" for in-app updates when the APK was not built by GitHub Actions. */
     public static final String UPDATE_REPO_FALLBACK = "";
 
-    public static final String API_KEY = "AIzaSyCvXS6nZ2md4xRVyUDtPNOMgL5ShUCADXI";
-    public static final String PROJECT_ID = "semo-7770a";
-
-    /**
-     * OAuth "Web client ID" used for Google sign-in (Firebase Console -> Authentication -> Sign-in method
-     * -> Google -> Web SDK configuration). Either paste it here or pass it to the build as the
-     * WEB_CLIENT_ID environment variable / GitHub secret.
-     */
-    private static final String WEB_CLIENT_ID_FALLBACK = "";
-
-    public static String webClientId() {
-        String v = BuildConfig.WEB_CLIENT_ID;
-        return v != null && !v.trim().isEmpty() ? v.trim() : WEB_CLIENT_ID_FALLBACK;
+    public static String apiKey() {
+        return Secrets.apiKey();
     }
 
-    static final String AUTH = "https://identitytoolkit.googleapis.com/v1/accounts:";
-    static final String TOKEN = "https://securetoken.googleapis.com/v1/token";
-    static final String DOC_ROOT = "projects/" + PROJECT_ID + "/databases/(default)/documents";
-    static final String FS = "https://firestore.googleapis.com/v1/" + DOC_ROOT;
+    public static String projectId() {
+        return Secrets.projectId();
+    }
+
+    /** OAuth "Web client ID" for Google sign-in (Firebase Console -> Authentication -> Google). */
+    public static String webClientId() {
+        return Secrets.webClientId().trim();
+    }
+
+    static String auth() {
+        return "https://identitytoolkit.googleapis.com/v1/accounts:";
+    }
+
+    static String token() {
+        return "https://securetoken.googleapis.com/v1/token";
+    }
+
+    static String docRoot() {
+        return "projects/" + projectId() + "/databases/(default)/documents";
+    }
+
+    static String fs() {
+        return "https://firestore.googleapis.com/v1/" + docRoot();
+    }
 }

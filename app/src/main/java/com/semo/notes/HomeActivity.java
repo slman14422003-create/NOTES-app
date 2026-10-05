@@ -75,6 +75,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_home);
         db = Db.get(this);
 
@@ -188,6 +189,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     @Override
     protected void onStart() {
         super.onStart();
+        if (isFinishing()) return; // blocked by the integrity check
         if (!Prefs.isCloud(this)) { // signed out or the session ended: Google sign-in is the only way in
             startActivity(new Intent(this, LoginActivity.class)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));

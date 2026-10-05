@@ -1,13 +1,17 @@
 rules_version = '2';
 
 // Notes app - Cloud Firestore security rules.
-// Every note lives at  users/{uid}/notes/{noteId}  and can only be read or written by the signed-in
-// user whose uid matches {uid}. Everything else in the database is closed.
+// Every note lives at  users/{uid}/notes/{noteId}. Only the signed-in owner (uid == {uid}), signed in
+// with Google and with a verified e-mail, can touch it. Everything else in the database is closed.
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // The caller is the owner of this user path and came in through Google sign-in.
     function isOwner(uid) {
-      return request.auth != null && request.auth.uid == uid;
+      return request.auth != null
+          && request.auth.uid == uid
+          && request.auth.token.firebase.sign_in_provider == 'google.com'
+          && request.auth.token.email_verified == true;
     }
 
     // Shape of a note document: exactly these fields, with these types and sizes.
@@ -39,11 +43,11 @@ service cloud.firestore {
                     && request.resource.data.createdAt == resource.data.createdAt
                     && request.resource.data.updatedAt >= resource.data.updatedAt;
 
-      // the app never deletes documents: permanent deletes are written as empty "purged" tombstones
-      allow delete: if false;
+      // only used by "Delete all my data"; normal deletes are written as empty "purged" tombstones
+      allow delete: if isOwner(uid);
     }
 
-    // Anything else: closed.
+    // Anything else: closed (no other collections, no listing of other users).
     match /{document=**} {
       allow read, write: if false;
     }

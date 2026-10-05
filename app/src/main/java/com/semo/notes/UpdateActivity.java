@@ -41,6 +41,7 @@ public class UpdateActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_settings);
         ((TextView) findViewById(R.id.title)).setText(R.string.upd_title);
         subtitle = findViewById(R.id.subtitle);

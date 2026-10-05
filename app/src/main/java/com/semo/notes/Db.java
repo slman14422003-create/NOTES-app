@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /** Local-first storage. Every screen reads from here; Firebase is only synchronised in the background. */
 public final class Db extends SQLiteOpenHelper {
@@ -19,13 +20,25 @@ public final class Db extends SQLiteOpenHelper {
 
     private static Db inst;
 
+    private final Context ctx;
+
     public static synchronized Db get(Context c) {
-        if (inst == null) inst = new Db(c.getApplicationContext());
+        if (inst == null) {
+            inst = new Db(c.getApplicationContext());
+            Vault.dataKey(inst.ctx);
+            if (Vault.dataKeyReset) {
+                // the key that encrypted the local notes is gone: drop them, the cloud copy is imported again
+                Vault.dataKeyReset = false;
+                inst.wipeAll();
+                Prefs.setCursor(inst.ctx, "");
+            }
+        }
         return inst;
     }
 
     private Db(Context c) {
-        super(c, "notes.db", null, 2);
+        super(c, "notes.db", null, 3);
+        ctx = c;
     }
 
     @Override
@@ -49,19 +62,35 @@ public final class Db extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
+        if (oldV < 3) encryptExisting(db); // notes written by older versions were stored as plain text
         if (oldV < 2) {
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_notes_state ON notes(purged, archived, trashed, pinned, updated)");
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_notes_dirty ON notes(dirty)");
         }
     }
 
+    /** One-time upgrade: encrypts every title and body that is still stored as plain text. */
+    private void encryptExisting(SQLiteDatabase db) {
+        List<String[]> rows = new ArrayList<>();
+        try (Cursor c = db.rawQuery("SELECT id,title,body FROM notes", null)) {
+            while (c.moveToNext()) rows.add(new String[]{c.getString(0), c.getString(1), c.getString(2)});
+        }
+        for (String[] r : rows) {
+            if (Vault.isSealed(r[1]) && Vault.isSealed(r[2])) continue;
+            ContentValues v = new ContentValues();
+            v.put("title", Vault.isSealed(r[1]) ? r[1] : Vault.seal(ctx, r[1]));
+            v.put("body", Vault.isSealed(r[2]) ? r[2] : Vault.seal(ctx, r[2]));
+            db.update("notes", v, "id=?", new String[]{r[0]});
+        }
+    }
+
     private static final String COLS = "id,title,body,kind,color,pinned,archived,trashed,purged,created,updated,dirty";
 
-    private static Note read(Cursor c) {
+    private Note read(Cursor c) {
         Note n = new Note();
         n.id = c.getString(0);
-        n.title = c.getString(1);
-        n.body = c.getString(2);
+        n.title = Vault.open(ctx, c.getString(1));
+        n.body = Vault.open(ctx, c.getString(2));
         n.kind = c.getInt(3);
         n.color = c.getInt(4);
         n.pinned = c.getInt(5) == 1;
@@ -74,11 +103,11 @@ public final class Db extends SQLiteOpenHelper {
         return n;
     }
 
-    private static ContentValues values(Note n) {
+    private ContentValues values(Note n) {
         ContentValues v = new ContentValues();
         v.put("id", n.id);
-        v.put("title", n.title);
-        v.put("body", n.body);
+        v.put("title", Vault.seal(ctx, n.title));
+        v.put("body", Vault.seal(ctx, n.body));
         v.put("kind", n.kind);
         v.put("color", n.color);
         v.put("pinned", n.pinned ? 1 : 0);
@@ -160,7 +189,7 @@ public final class Db extends SQLiteOpenHelper {
         return query(null, null, "updated DESC");
     }
 
-    private static String where(String filter, String q, List<String> args) {
+    private static String where(String filter) {
         StringBuilder w = new StringBuilder("purged=0 AND ");
         switch (filter == null ? F_ALL : filter) {
             case F_PINNED:
@@ -178,12 +207,6 @@ public final class Db extends SQLiteOpenHelper {
             default:
                 w.append("archived=0 AND trashed=0");
         }
-        if (q != null && !q.trim().isEmpty()) {
-            String like = "%" + q.trim().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
-            w.append(" AND (title LIKE ? ESCAPE '\\' OR body LIKE ? ESCAPE '\\')");
-            args.add(like);
-            args.add(like);
-        }
         return w.toString();
     }
 
@@ -191,17 +214,27 @@ public final class Db extends SQLiteOpenHelper {
         return list(filter, q, 0);
     }
 
-    /** {@code limit <= 0} = no limit. */
+    /** {@code limit <= 0} = no limit. A search query is matched in memory because titles and bodies are encrypted. */
     public synchronized List<Note> list(String filter, String q, int limit) {
-        List<String> args = new ArrayList<>();
-        String w = where(filter, q, args);
-        return query(w, args.toArray(new String[0]), "pinned DESC, updated DESC" + (limit > 0 ? " LIMIT " + limit : ""));
+        String order = "pinned DESC, updated DESC";
+        String w = where(filter);
+        if (q == null || q.trim().isEmpty()) {
+            return query(w, null, order + (limit > 0 ? " LIMIT " + limit : ""));
+        }
+        String needle = q.trim().toLowerCase(Locale.ROOT);
+        List<Note> out = new ArrayList<>();
+        for (Note n : query(w, null, order)) {
+            if (n.title.toLowerCase(Locale.ROOT).contains(needle)
+                    || n.plainText().toLowerCase(Locale.ROOT).contains(needle)) {
+                out.add(n);
+                if (limit > 0 && out.size() >= limit) break;
+            }
+        }
+        return out;
     }
 
     public synchronized int count(String filter) {
-        List<String> args = new ArrayList<>();
-        String w = where(filter, null, args);
-        try (Cursor c = getReadableDatabase().rawQuery("SELECT COUNT(*) FROM notes WHERE " + w, args.toArray(new String[0]))) {
+        try (Cursor c = getReadableDatabase().rawQuery("SELECT COUNT(*) FROM notes WHERE " + where(filter), null)) {
             return c.moveToFirst() ? c.getInt(0) : 0;
         }
     }

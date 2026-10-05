@@ -38,9 +38,6 @@ android {
         versionCode = (System.getenv('VERSION_CODE_OVERRIDE') ?: (10 + (System.getenv('GITHUB_RUN_NUMBER') ?: '0').toInteger()).toString()).toInteger()
         // CI passes the release tag (without the leading v) so the installed version matches the Release tag
         versionName = System.getenv('APP_VERSION_NAME') ?: "1.0"
-        // GitHub Actions sets GITHUB_REPOSITORY (owner/repo): the APK then updates itself from the repo that built it
-        buildConfigField 'String', 'UPDATE_REPO', "\"${(System.getenv('GITHUB_REPOSITORY') ?: '').trim()}\""
-        buildConfigField 'String', 'WEB_CLIENT_ID', "\"${(System.getenv('WEB_CLIENT_ID') ?: '').trim()}\""
     }
 
     buildFeatures {
@@ -103,3 +100,65 @@ dependencies {
     implementation 'androidx.credentials:credentials-play-services-auth:1.5.0'
     implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
 }
+
+// ---------------------------------------------------------------------------------------------
+// Build-time string encryption. The Firebase identifiers, the Google web client ID, the update
+// repository and the expected signing-certificate fingerprint are NOT written into the APK as
+// readable strings: every build generates a fresh random key and a Secrets.java that only holds
+// scrambled bytes. This hides them from strings/grep on the APK and from casual decompiling
+// (R8 then renames everything). It is obfuscation, not a secret store: the real protection of
+// the data is the Firestore rules + the signed-in Google account, never these values.
+// ---------------------------------------------------------------------------------------------
+def secretsValues = [
+        apiKey     : (System.getenv('FIREBASE_API_KEY') ?: 'AIzaSyCvXS6nZ2md4xRVyUDtPNOMgL5ShUCADXI').trim(),
+        projectId  : (System.getenv('FIREBASE_PROJECT_ID') ?: 'semo-7770a').trim(),
+        webClientId: (System.getenv('WEB_CLIENT_ID') ?: '').trim(),
+        updateRepo : (System.getenv('GITHUB_REPOSITORY') ?: '').trim(),
+        certSha256 : (System.getenv('EXPECTED_CERT_SHA256') ?: '').trim().replace(':', '')
+]
+def secretsDir = new File(layout.buildDirectory.get().asFile, 'generated/secrets/java')
+def secretsPkg = new File(secretsDir, 'com/semo/notes')
+secretsPkg.mkdirs()
+def rnd = new java.security.SecureRandom()
+byte[] partA = new byte[32]
+byte[] partB = new byte[32]
+rnd.nextBytes(partA)
+rnd.nextBytes(partB)
+def asJava = { byte[] arr ->
+    def sb = new StringBuilder('new byte[]{')
+    for (int i = 0; i < arr.length; i++) {
+        if (i > 0) sb.append(',')
+        sb.append((int) arr[i])
+    }
+    sb.append('}')
+    return sb.toString()
+}
+def scramble = { String text ->
+    byte[] plain = text.getBytes('UTF-8')
+    byte[] out = new byte[plain.length]
+    for (int i = 0; i < plain.length; i++) {
+        int k = (partA[i % 32] ^ partB[i % 32]) & 0xFF
+        out[i] = (byte) ((plain[i] ^ k ^ (i * 31)) & 0xFF)
+    }
+    return out
+}
+def secretsSrc = new StringBuilder()
+secretsSrc.append('package com.semo.notes;\n\n')
+secretsSrc.append('/** Generated at build time - do not edit. Values are scrambled with a per-build random key. */\n')
+secretsSrc.append('final class Secrets {\n    private Secrets() {\n    }\n\n')
+secretsSrc.append('    private static final byte[] A = ').append(asJava(partA)).append(';\n')
+secretsSrc.append('    private static final byte[] B = ').append(asJava(partB)).append(';\n\n')
+secretsSrc.append('    private static String d(byte[] c) {\n')
+secretsSrc.append('        byte[] o = new byte[c.length];\n')
+secretsSrc.append('        for (int i = 0; i < c.length; i++) {\n')
+secretsSrc.append('            o[i] = (byte) (c[i] ^ A[i % 32] ^ B[i % 32] ^ (i * 31));\n')
+secretsSrc.append('        }\n')
+secretsSrc.append('        return new String(o, java.nio.charset.StandardCharsets.UTF_8);\n')
+secretsSrc.append('    }\n')
+secretsValues.each { name, value ->
+    secretsSrc.append('\n    static String ').append(name).append('() {\n        return d(')
+            .append(asJava(scramble(value))).append(');\n    }\n')
+}
+secretsSrc.append('}\n')
+new File(secretsPkg, 'Secrets.java').setText(secretsSrc.toString(), 'UTF-8')
+android.sourceSets.main.java.srcDir(secretsDir)

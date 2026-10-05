@@ -50,7 +50,7 @@ public class Dlg extends AlertDialog.Builder {
 
     private static final int[] DESTRUCTIVE = {
             R.string.delete, R.string.delete_forever, R.string.empty_trash, R.string.sign_out,
-            R.string.move_to_trash, R.string.sign_out_wipe};
+            R.string.move_to_trash, R.string.sign_out_wipe, R.string.delete_all_data};
 
     /** True for labels of actions that remove or abort something (shown in red). */
     static boolean destructive(Context c, CharSequence label) {

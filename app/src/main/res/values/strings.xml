@@ -165,4 +165,12 @@
     <string name="privacy_screen">حماية الشاشة</string>
     <string name="privacy_screen_sub">يمنع لقطات الشاشة ويُخفي المحتوى في قائمة التطبيقات الأخيرة</string>
     <string name="upd_downgrade">هذا الملف ليس أحدث من النسخة المثبّتة، لم يُثبَّت</string>
+    <string name="tamper_title">نسخة معدّلة من التطبيق</string>
+    <string name="tamper_msg">اكتُشف أن هذا التطبيق عُدِّل أو أُعيد توقيعه أو يعمل تحت مُنقِّح، لذلك أُوقف حفاظًا على ملاحظاتك. ثبّت النسخة الرسمية من صفحة الإصدارات في GitHub.</string>
+    <string name="tamper_exit">إغلاق</string>
+    <string name="err_tampered">تم إيقاف الاتصال لأن التطبيق معدّل. ثبّت النسخة الرسمية</string>
+    <string name="delete_all_data">حذف كل بياناتي</string>
+    <string name="delete_all_data_sub">يحذف ملاحظاتك من Firebase ومن هذا الجهاز نهائيًا</string>
+    <string name="delete_all_data_msg">سيتم حذف كل ملاحظاتك من Firebase ومن هذا الجهاز، ثم محاولة حذف حسابك في Firebase. لا يمكن التراجع. صدّر نسخة احتياطية أولًا إن أردت الاحتفاظ بها.</string>
+    <string name="delete_all_done">حُذفت كل بياناتك</string>
 </resources>

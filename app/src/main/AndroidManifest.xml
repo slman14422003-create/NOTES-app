@@ -68,6 +68,11 @@
         </activity>
 
         <activity
+            android:name=".TamperActivity"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+
+        <activity
             android:name=".UpdateActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />

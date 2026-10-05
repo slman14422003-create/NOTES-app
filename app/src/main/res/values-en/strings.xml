@@ -165,4 +165,12 @@
     <string name="privacy_screen">Screen protection</string>
     <string name="privacy_screen_sub">Blocks screenshots and hides the content in the recent-apps list</string>
     <string name="upd_downgrade">This file is not newer than the installed version, so it was not installed</string>
+    <string name="tamper_title">Modified app</string>
+    <string name="tamper_msg">This app was modified, re-signed or is running under a debugger, so it was stopped to protect your notes. Install the official version from the GitHub releases page.</string>
+    <string name="tamper_exit">Close</string>
+    <string name="err_tampered">Connection blocked because the app was modified. Install the official version</string>
+    <string name="delete_all_data">Delete all my data</string>
+    <string name="delete_all_data_sub">Permanently deletes your notes from Firebase and from this device</string>
+    <string name="delete_all_data_msg">All your notes will be deleted from Firebase and from this device, and your Firebase account will be removed if possible. This cannot be undone. Export a backup first if you want to keep one.</string>
+    <string name="delete_all_done">All your data was deleted</string>
 </resources>

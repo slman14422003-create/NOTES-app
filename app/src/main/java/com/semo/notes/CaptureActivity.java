@@ -17,6 +17,7 @@ public class CaptureActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Integrity.enforce(this)) return;
         Intent in = getIntent();
         if (!Prefs.isCloud(this)) {
             Toast.makeText(this, R.string.sign_in_first, Toast.LENGTH_LONG).show();

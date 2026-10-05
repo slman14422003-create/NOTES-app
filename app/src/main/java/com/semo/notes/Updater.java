@@ -85,7 +85,7 @@ public final class Updater {
     public static String repo(Context c) {
         String v = Prefs.updateRepo(c);
         if (validSlug(v)) return v;
-        v = BuildConfig.UPDATE_REPO == null ? "" : BuildConfig.UPDATE_REPO.trim();
+        v = Secrets.updateRepo().trim();
         if (validSlug(v)) return v;
         return Cfg.UPDATE_REPO_FALLBACK;
     }

@@ -53,6 +53,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen splash = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+        if (Integrity.enforce(this)) return;
         fromApp = getIntent().getBooleanExtra(EXTRA_FROM_APP, false);
         final long start = SystemClock.uptimeMillis();
         splash.setKeepOnScreenCondition(() -> SystemClock.uptimeMillis() - start < SPLASH_MS);

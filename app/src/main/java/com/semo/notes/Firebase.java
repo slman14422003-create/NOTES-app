@@ -37,6 +37,17 @@ public final class Firebase {
         }
     }
 
+    // Identity of this app, sent with every request so the API key can be restricted to this Android app
+    // (Google Cloud Console -> Credentials -> API key -> Application restrictions -> Android apps).
+    private static volatile Context appCtx;
+    private static volatile String certSha1 = "";
+
+    /** Called once from the Application. */
+    public static void init(Context c) {
+        appCtx = c.getApplicationContext();
+        certSha1 = Integrity.signerHash(c, "SHA-1");
+    }
+
     private static final class Resp {
         int code;
         String text;
@@ -46,9 +57,16 @@ public final class Firebase {
 
     private static Resp call(String method, String url, String body, String contentType, String bearer)
             throws FbException {
+        Context ctx = appCtx;
+        if (ctx != null && !Integrity.ok(ctx)) throw new FbException("TAMPERED", 0, "modified app");
+        if (!url.startsWith("https://")) throw new FbException("INSECURE", 0, "https only");
         HttpURLConnection c = null;
         try {
             c = (HttpURLConnection) new URL(url).openConnection();
+            if (ctx != null) {
+                c.setRequestProperty("X-Android-Package", ctx.getPackageName());
+                if (!certSha1.isEmpty()) c.setRequestProperty("X-Android-Cert", certSha1);
+            }
             c.setConnectTimeout(15000);
             c.setReadTimeout(30000);
             c.setRequestMethod(method);
@@ -130,6 +148,8 @@ public final class Firebase {
                 return c.getString(R.string.err_network);
             case "PERMISSION_DENIED":
                 return c.getString(R.string.err_permission);
+            case "TAMPERED":
+                return c.getString(R.string.err_tampered);
             case "SESSION_ENDED":
             case "UNAUTHENTICATED":
             case "NO_SESSION":
@@ -155,7 +175,7 @@ public final class Firebase {
     }
 
     private static Session authCall(String endpoint, JSONObject body, boolean anonymous) throws FbException {
-        Resp r = call("POST", Cfg.AUTH + endpoint + "?key=" + Cfg.API_KEY, body.toString(), "application/json", null);
+        Resp r = call("POST", Cfg.auth() + endpoint + "?key=" + Cfg.apiKey(), body.toString(), "application/json", null);
         JSONObject o = json(r);
         Session s = new Session();
         s.uid = o.optString("localId");
@@ -193,7 +213,7 @@ public final class Firebase {
         String rt = Prefs.refreshToken(c);
         if (rt.isEmpty()) throw new FbException("NO_SESSION", 401, "no refresh token");
         String form = "grant_type=refresh_token&refresh_token=" + enc(rt);
-        Resp r = call("POST", Cfg.TOKEN + "?key=" + Cfg.API_KEY, form, "application/x-www-form-urlencoded", null);
+        Resp r = call("POST", Cfg.token() + "?key=" + Cfg.apiKey(), form, "application/x-www-form-urlencoded", null);
         JSONObject o = json(r);
         String id = o.optString("id_token");
         if (id.isEmpty()) throw new FbException("BAD_RESPONSE", r.code, "no id_token");
@@ -204,7 +224,7 @@ public final class Firebase {
     // ------------------------------------------------------------------ firestore
 
     private static String notesUrl(String uid) {
-        return Cfg.FS + "/users/" + enc(uid) + "/notes";
+        return Cfg.fs() + "/users/" + enc(uid) + "/notes";
     }
 
     public static final class Changes {
@@ -238,7 +258,7 @@ public final class Firebase {
                             .put("op", "GREATER_THAN_OR_EQUAL")
                             .put("value", new JSONObject().put("timestampValue", from))));
                 }
-                Resp r = call("POST", Cfg.FS + "/users/" + enc(uid) + ":runQuery",
+                Resp r = call("POST", Cfg.fs() + "/users/" + enc(uid) + ":runQuery",
                         new JSONObject().put("structuredQuery", q).toString(), "application/json", token);
                 if (r.code >= 400) throw error(r);
                 JSONArray arr = new JSONArray(r.text.isEmpty() ? "[]" : r.text);
@@ -270,15 +290,42 @@ public final class Firebase {
             JSONArray writes = new JSONArray();
             for (Note n : notes) {
                 JSONObject upd = new JSONObject()
-                        .put("name", Cfg.DOC_ROOT + "/users/" + uid + "/notes/" + n.id)
+                        .put("name", Cfg.docRoot() + "/users/" + uid + "/notes/" + n.id)
                         .put("fields", toFields(n));
                 // syncedAt = server time of the write; other devices use it as their pull cursor
                 JSONArray tr = new JSONArray().put(new JSONObject()
                         .put("fieldPath", "syncedAt").put("setToServerValue", "REQUEST_TIME"));
                 writes.put(new JSONObject().put("update", upd).put("updateTransforms", tr));
             }
-            json(call("POST", Cfg.FS + ":commit", new JSONObject().put("writes", writes).toString(),
+            json(call("POST", Cfg.fs() + ":commit", new JSONObject().put("writes", writes).toString(),
                     "application/json", token));
+        } catch (JSONException e) {
+            throw new FbException("BAD_REQUEST", 0, e.getMessage());
+        }
+    }
+
+    /** Permanently deletes every note document of the user (used by "Delete all my data"). */
+    public static void deleteAllNotes(String token, String uid) throws FbException {
+        Changes all = listChanged(token, uid, "");
+        try {
+            for (int i = 0; i < all.notes.size(); i += 200) {
+                JSONArray writes = new JSONArray();
+                for (Note n : all.notes.subList(i, Math.min(all.notes.size(), i + 200))) {
+                    writes.put(new JSONObject().put("delete", Cfg.docRoot() + "/users/" + uid + "/notes/" + n.id));
+                }
+                json(call("POST", Cfg.fs() + ":commit", new JSONObject().put("writes", writes).toString(),
+                        "application/json", token));
+            }
+        } catch (JSONException e) {
+            throw new FbException("BAD_REQUEST", 0, e.getMessage());
+        }
+    }
+
+    /** Deletes the Firebase account itself. Needs a recent sign-in, so a failure is not fatal for the caller. */
+    public static void deleteAccount(String token) throws FbException {
+        try {
+            json(call("POST", Cfg.auth() + "delete?key=" + Cfg.apiKey(),
+                    new JSONObject().put("idToken", token).toString(), "application/json", null));
         } catch (JSONException e) {
             throw new FbException("BAD_REQUEST", 0, e.getMessage());
         }

@@ -42,6 +42,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_settings);
         db = Db.get(this);
         ((TextView) findViewById(R.id.title)).setText(R.string.settings);
@@ -68,6 +69,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
     @Override
     protected void onStart() {
         super.onStart();
+        if (isFinishing()) return; // blocked by the integrity check
         Sync.listen(this);
         build();
     }
@@ -117,6 +119,10 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
             else getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE);
         });
         content.addView(secure.view);
+
+        Row wipe = new Row(R.drawable.ic_trash_sweep, false, getString(R.string.delete_all_data),
+                getString(R.string.delete_all_data_sub), false, false).tint(Ui.color(this, R.color.bad));
+        content.addView(Ui.rowView(this, content, wipe, v -> confirmDeleteAll()));
 
         // updates
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_updates)));
@@ -292,6 +298,49 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
                 .setPositiveButton(R.string.sign_out_wipe, (d, w) -> signOut(true))
                 .setNegativeButton(R.string.sign_out_keep, (d, w) -> signOut(false))
                 .setNeutralButton(R.string.cancel, null)
+                .show();
+    }
+
+    /** Removes the cloud copy (and the Firebase account when possible) and everything stored on this device. */
+    private void confirmDeleteAll() {
+        new Dlg(this)
+                .setTitle(R.string.delete_all_data)
+                .setMessage(R.string.delete_all_data_msg)
+                .setPositiveButton(R.string.delete_all_data, (d, w) -> {
+                    loading.setVisibility(View.VISIBLE);
+                    final String uid = Prefs.uid(this);
+                    io.execute(() -> {
+                        String err = null;
+                        try {
+                            String token = Firebase.validToken(getApplicationContext());
+                            Firebase.deleteAllNotes(token, uid);
+                            try {
+                                Firebase.deleteAccount(token);
+                            } catch (Firebase.FbException ignored) {
+                                // needs a very recent sign-in; the notes are already gone from the cloud
+                            }
+                        } catch (Firebase.FbException e) {
+                            err = e.code;
+                        }
+                        final String fErr = err;
+                        ui.post(() -> {
+                            loading.setVisibility(View.INVISIBLE);
+                            if (fErr != null) {
+                                Toast.makeText(this, Firebase.friendly(this, fErr), Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            db.wipeAll();
+                            Prefs.setOwnerUid(this, "");
+                            Prefs.clearSession(this);
+                            Toast.makeText(this, R.string.delete_all_done, Toast.LENGTH_LONG).show();
+                            Intent i = new Intent(this, LoginActivity.class);
+                            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(i);
+                            finish();
+                        });
+                    });
+                })
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
