@@ -98,10 +98,10 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
 
         // account
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_account)));
-        String title = Prefs.anonymous(this) ? getString(R.string.guest)
+        String accTitle = Prefs.anonymous(this) ? getString(R.string.guest)
                 : (Prefs.email(this).isEmpty() ? getString(R.string.signed_in) : Prefs.email(this));
-        String sub = Prefs.anonymous(this) ? getString(R.string.guest_sub) : getString(R.string.signed_in);
-        content.addView(Ui.rowView(this, content, new Row(R.drawable.ic_user, false, title, sub, false, false), null));
+        String accSub = Prefs.anonymous(this) ? getString(R.string.guest_sub) : getString(R.string.signed_in);
+        content.addView(Ui.rowView(this, content, new Row(R.drawable.ic_user, false, accTitle, accSub, false, false), null));
 
         // language
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_language)));
