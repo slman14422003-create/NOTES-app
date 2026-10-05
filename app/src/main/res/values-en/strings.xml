@@ -173,4 +173,15 @@
     <string name="delete_all_data_sub">Permanently deletes your notes from Firebase and from this device</string>
     <string name="delete_all_data_msg">All your notes will be deleted from Firebase and from this device, and your Firebase account will be removed if possible. This cannot be undone. Export a backup first if you want to keep one.</string>
     <string name="delete_all_done">All your data was deleted</string>
+    <string name="sec_appearance">Appearance</string>
+    <string name="th_mode">Mode</string>
+    <string name="th_color">App colour</string>
+    <string name="th_system">System</string>
+    <string name="th_dark">Dark</string>
+    <string name="th_light">Light</string>
+    <string name="th_mono">White</string>
+    <string name="th_blue">Blue</string>
+    <string name="th_green">Green</string>
+    <string name="th_berry">Berry</string>
+    <string name="th_yellow">Yellow</string>
 </resources>

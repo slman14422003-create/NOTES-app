@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/ripple_on_accent">
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="?attr/n_ripple_on_accent">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/bad" />
+            <solid android:color="?attr/n_bad" />
             <corners android:radius="100dp" />
         </shape>
     </item>

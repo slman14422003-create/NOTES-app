@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- theme colours: every palette x mode defines all of them (see theme_variants.xml) -->
+    <attr name="n_bg" format="color" />
+    <attr name="n_surface" format="color" />
+    <attr name="n_surface_high" format="color" />
+    <attr name="n_field" format="color" />
+    <attr name="n_stroke" format="color" />
+    <attr name="n_stroke_soft" format="color" />
+    <attr name="n_text_primary" format="color" />
+    <attr name="n_text_secondary" format="color" />
+    <attr name="n_text_hint" format="color" />
+    <attr name="n_accent" format="color" />
+    <attr name="n_accent_text" format="color" />
+    <attr name="n_accent_soft" format="color" />
+    <attr name="n_neutral_soft" format="color" />
+    <attr name="n_on_accent" format="color" />
+    <attr name="n_ripple" format="color" />
+    <attr name="n_ripple_on_accent" format="color" />
+    <attr name="n_ok" format="color" />
+    <attr name="n_bad" format="color" />
+    <attr name="n_warn" format="color" />
+    <attr name="n_info" format="color" />
+    <attr name="n_note1" format="color" />
+    <attr name="n_note2" format="color" />
+    <attr name="n_note3" format="color" />
+    <attr name="n_note4" format="color" />
+    <attr name="n_note5" format="color" />
+    <attr name="n_note6" format="color" />
+</resources>

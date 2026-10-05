@@ -173,4 +173,15 @@
     <string name="delete_all_data_sub">يحذف ملاحظاتك من Firebase ومن هذا الجهاز نهائيًا</string>
     <string name="delete_all_data_msg">سيتم حذف كل ملاحظاتك من Firebase ومن هذا الجهاز، ثم محاولة حذف حسابك في Firebase. لا يمكن التراجع. صدّر نسخة احتياطية أولًا إن أردت الاحتفاظ بها.</string>
     <string name="delete_all_done">حُذفت كل بياناتك</string>
+    <string name="sec_appearance">المظهر</string>
+    <string name="th_mode">الوضع</string>
+    <string name="th_color">لون التطبيق</string>
+    <string name="th_system">النظام</string>
+    <string name="th_dark">ليلي</string>
+    <string name="th_light">نهاري</string>
+    <string name="th_mono">أبيض</string>
+    <string name="th_blue">أزرق</string>
+    <string name="th_green">أخضر</string>
+    <string name="th_berry">توتي</string>
+    <string name="th_yellow">أصفر</string>
 </resources>

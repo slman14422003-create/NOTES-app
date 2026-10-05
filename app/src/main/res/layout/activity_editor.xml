@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg"
+    android:background="?attr/n_bg"
     android:orientation="vertical">
 
     <include layout="@layout/view_header" />
@@ -45,8 +45,8 @@
                 android:paddingBottom="6dp"
                 android:textAlignment="textStart"
                 android:textDirection="firstStrong"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint"
+                android:textColor="?attr/n_text_primary"
+                android:textColorHint="?attr/n_text_hint"
                 android:textSize="26sp" />
 
             <TextView
@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:paddingBottom="10dp"
                 android:textAlignment="viewStart"
-                android:textColor="@color/text_secondary"
+                android:textColor="?attr/n_text_secondary"
                 android:textSize="12sp" />
 
             <EditText
@@ -71,8 +71,8 @@
                 android:minHeight="240dp"
                 android:textAlignment="textStart"
                 android:textDirection="firstStrong"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint"
+                android:textColor="?attr/n_text_primary"
+                android:textColorHint="?attr/n_text_hint"
                 android:textSize="17sp" />
 
             <LinearLayout
@@ -88,11 +88,11 @@
                 android:layout_height="wrap_content"
                 android:drawablePadding="10dp"
                 android:drawableStart="@drawable/ic_add"
-                android:drawableTint="@color/accent_text"
+                android:drawableTint="?attr/n_accent_text"
                 android:gravity="center_vertical"
                 android:minHeight="48dp"
                 android:text="@string/add_item"
-                android:textColor="@color/accent_text"
+                android:textColor="?attr/n_accent_text"
                 android:textSize="15sp"
                 android:visibility="gone" />
         </LinearLayout>
@@ -129,12 +129,12 @@
             android:background="@drawable/bg_pill_neutral"
             android:drawablePadding="8dp"
             android:drawableStart="@drawable/ic_checklist"
-            android:drawableTint="@color/text_primary"
+            android:drawableTint="?attr/n_text_primary"
             android:gravity="center_vertical"
             android:minHeight="44dp"
             android:paddingStart="16dp"
             android:paddingEnd="18dp"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/n_text_primary"
             android:textSize="14sp" />
     </LinearLayout>
 </LinearLayout>

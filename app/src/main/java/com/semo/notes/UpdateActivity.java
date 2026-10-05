@@ -40,6 +40,7 @@ public class UpdateActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeKit.apply(this);
         super.onCreate(savedInstanceState);
         if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_settings);
@@ -129,9 +130,9 @@ public class UpdateActivity extends AppCompatActivity {
             add(new Row(R.drawable.ic_refresh, false, getString(R.string.upd_latest),
                     getString(R.string.upd_checking), false, false), null);
         } else if (errorText != null) {
-            content.addView(Ui.noteCard(this, errorText, R.color.bad));
+            content.addView(Ui.noteCard(this, errorText, R.attr.n_bad));
         } else if (info == null) {
-            content.addView(Ui.noteCard(this, getString(R.string.upd_none_found), R.color.text_secondary));
+            content.addView(Ui.noteCard(this, getString(R.string.upd_none_found), R.attr.n_text_secondary));
         } else {
             renderRelease();
         }
@@ -159,12 +160,12 @@ public class UpdateActivity extends AppCompatActivity {
         String ago = ago(info.publishedAt);
         if (!ago.isEmpty()) sub.append(" · ").append(getString(R.string.upd_published, ago));
         Row latest = new Row(R.drawable.ic_download, false, title, sub.toString(), false, false);
-        if (info.newer) latest.badge(getString(R.string.upd_badge_new), Ui.color(this, R.color.accent_text));
-        else latest.badge(getString(R.string.upd_badge_current), Ui.color(this, R.color.ok));
+        if (info.newer) latest.badge(getString(R.string.upd_badge_new), Ui.color(this, R.attr.n_accent_text));
+        else latest.badge(getString(R.string.upd_badge_current), Ui.color(this, R.attr.n_ok));
         add(latest, null);
 
         if (!info.newer) {
-            content.addView(Ui.noteCard(this, getString(R.string.upd_up_to_date), R.color.text_secondary));
+            content.addView(Ui.noteCard(this, getString(R.string.upd_up_to_date), R.attr.n_text_secondary));
         } else {
             Button install = Ui.block(this, Ui.button(this,
                     ready != null ? R.string.upd_install : R.string.upd_download_install, true));
@@ -192,7 +193,7 @@ public class UpdateActivity extends AppCompatActivity {
         String notes = Updater.cleanNotes(info.body);
         if (!notes.isEmpty()) {
             content.addView(Ui.sectionTitle(this, getString(R.string.upd_notes)));
-            content.addView(Ui.noteCard(this, notes, R.color.text_primary));
+            content.addView(Ui.noteCard(this, notes, R.attr.n_text_primary));
         }
     }
 

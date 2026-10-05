@@ -49,7 +49,9 @@ public class App extends Application {
                 ViewCompat.requestApplyInsets(content);
             }
 
-            @Override public void onActivityResumed(Activity a) { }
+            @Override public void onActivityResumed(Activity a) {
+                ThemeKit.refreshIfChanged(a); // palette / day-night changed while this screen was in the back
+            }
             @Override public void onActivityPaused(Activity a) { }
             @Override public void onActivityStopped(Activity a) { }
             @Override public void onActivitySaveInstanceState(Activity a, Bundle b) { }

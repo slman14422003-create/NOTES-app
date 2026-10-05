@@ -1,6 +1,7 @@
 package com.semo.notes;
 
 import android.content.Context;
+import android.util.TypedValue;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -52,8 +53,14 @@ public final class Ui {
         return (int) (v * c.getResources().getDisplayMetrics().density);
     }
 
-    public static int color(Context c, int res) {
-        return ContextCompat.getColor(c, res);
+    /** Resolves a theme colour attribute (R.attr.n_*) against the context's current theme (palette + day/night). */
+    public static int color(Context c, int attr) {
+        TypedValue tv = new TypedValue();
+        if (c.getTheme().resolveAttribute(attr, tv, true)) {
+            if (tv.resourceId != 0) return ContextCompat.getColor(c, tv.resourceId);
+            return tv.data;
+        }
+        return 0xFFFF00FF; // missing attribute: loud magenta so it is noticed
     }
 
     public static EditText edit(Context c, CharSequence hint, CharSequence text) {
@@ -61,8 +68,8 @@ public final class Ui {
         e.setHint(hint);
         if (text != null) e.setText(text);
         e.setBackgroundResource(R.drawable.bg_input);
-        e.setTextColor(ContextCompat.getColor(c, R.color.text_primary));
-        e.setHintTextColor(ContextCompat.getColor(c, R.color.text_hint));
+        e.setTextColor(Ui.color(c, R.attr.n_text_primary));
+        e.setHintTextColor(Ui.color(c, R.attr.n_text_hint));
         e.setTextSize(15);
         e.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
         e.setMinHeight(dp(c, 52));
@@ -90,7 +97,7 @@ public final class Ui {
         CheckBox cb = new CheckBox(c);
         cb.setText(textRes);
         cb.setChecked(checked);
-        cb.setTextColor(ContextCompat.getColor(c, R.color.text_primary));
+        cb.setTextColor(Ui.color(c, R.attr.n_text_primary));
         cb.setTextSize(15);
         cb.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
         cb.setButtonTintList(ContextCompat.getColorStateList(c, R.color.check_tint));
@@ -111,7 +118,7 @@ public final class Ui {
     }
 
     public static void tint(Context c, ProgressBar bar) {
-        ColorStateList accent = ColorStateList.valueOf(ContextCompat.getColor(c, R.color.accent));
+        ColorStateList accent = ColorStateList.valueOf(Ui.color(c, R.attr.n_accent));
         bar.setProgressTintList(accent);
         bar.setIndeterminateTintList(accent);
     }
@@ -119,7 +126,7 @@ public final class Ui {
     public static TextView label(Context c, CharSequence text) {
         TextView t = new TextView(c);
         t.setText(text);
-        t.setTextColor(ContextCompat.getColor(c, R.color.text_secondary));
+        t.setTextColor(Ui.color(c, R.attr.n_text_secondary));
         t.setTextSize(13);
         t.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
         t.setPaddingRelative(dp(c, 6), dp(c, 6), dp(c, 6), dp(c, 4));
@@ -163,16 +170,16 @@ public final class Ui {
     public static void setChip(Context c, TextView t, boolean selected) {
         GradientDrawable g = new GradientDrawable();
         g.setCornerRadius(dp(c, 100));
-        g.setStroke(dp(c, 1), color(c, selected ? R.color.accent : R.color.stroke));
-        g.setColor(color(c, selected ? R.color.accent_soft : R.color.surface));
+        g.setStroke(dp(c, 1), color(c, selected ? R.attr.n_accent : R.attr.n_stroke));
+        g.setColor(color(c, selected ? R.attr.n_accent_soft : R.attr.n_surface));
         t.setBackground(g);
-        t.setTextColor(color(c, selected ? R.color.accent_text : R.color.text_secondary));
+        t.setTextColor(color(c, selected ? R.attr.n_accent_text : R.attr.n_text_secondary));
     }
 
     public static TextView sectionTitle(Context c, CharSequence text) {
         TextView t = new TextView(c);
         t.setText(text);
-        t.setTextColor(color(c, R.color.text_secondary));
+        t.setTextColor(color(c, R.attr.n_text_secondary));
         t.setTextSize(14);
         t.setTypeface(Typeface.DEFAULT_BOLD);
         t.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
@@ -198,7 +205,7 @@ public final class Ui {
         b.setText(textRes);
         b.setAllCaps(false);
         b.setBackgroundResource(primary ? R.drawable.btn_primary : R.drawable.btn_secondary);
-        b.setTextColor(color(c, primary ? R.color.on_accent : R.color.text_primary));
+        b.setTextColor(color(c, primary ? R.attr.n_on_accent : R.attr.n_text_primary));
         b.setTextSize(15);
         b.setTypeface(Typeface.DEFAULT_BOLD);
         b.setMinHeight(dp(c, 50));
@@ -225,7 +232,7 @@ public final class Ui {
         View rest = new View(c);
         GradientDrawable g2 = new GradientDrawable();
         g2.setCornerRadius(dp(c, 6));
-        g2.setColor(color(c, R.color.neutral_soft));
+        g2.setColor(color(c, R.attr.n_neutral_soft));
         rest.setBackground(g2);
         rest.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 100f - pct));
         l.addView(fill);
@@ -235,7 +242,7 @@ public final class Ui {
 
     /** Shapes a row card so rows of one section read as a single rounded group (ChatGPT style). */
     public static void shapeRow(Context c, View v, boolean first, boolean last) {
-        shapeRow(c, v, first, last, R.color.surface);
+        shapeRow(c, v, first, last, R.attr.n_surface);
     }
 
     /** Same as above with a custom fill (used to highlight selected rows). */
@@ -254,7 +261,7 @@ public final class Ui {
         mask.setColor(0xFFFFFFFF);
         mask.setCornerRadii(radii);
         card.setBackground(new RippleDrawable(
-                ColorStateList.valueOf(color(c, R.color.ripple)), fill, mask));
+                ColorStateList.valueOf(color(c, R.attr.n_ripple)), fill, mask));
     }
 
     /** Groups every run of consecutive row cards inside a container. */

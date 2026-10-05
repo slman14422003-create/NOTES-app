@@ -357,7 +357,7 @@ public final class Firebase {
         if (n.title.length() > 500) n.title = n.title.substring(0, 500);
         if (n.body.length() > 200_000) n.body = n.body.substring(0, 200_000);
         n.kind = num(f, "kind") == 1 ? 1 : 0;
-        n.color = (int) Math.max(0, Math.min(Palette.CARD.length - 1, num(f, "color")));
+        n.color = (int) Math.max(0, Math.min(Palette.COUNT - 1, num(f, "color")));
         n.pinned = bool(f, "pinned");
         n.archived = bool(f, "archived");
         n.trashed = bool(f, "trashed");

@@ -72,7 +72,7 @@ public class RowAdapter extends BaseAdapter {
         icon.setImageResource(r.icon);
         boolean colored = r.iconColor != 0;
         icon.setBackground(null);
-        int tint = colored ? r.iconColor : ContextCompat.getColor(ctx, R.color.text_primary);
+        int tint = colored ? r.iconColor : Ui.color(ctx, R.attr.n_text_primary);
         icon.setImageTintList(ColorStateList.valueOf(tint));
 
         ((TextView) v.findViewById(R.id.title)).setText(r.title);

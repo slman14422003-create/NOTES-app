@@ -74,6 +74,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeKit.apply(this);
         super.onCreate(savedInstanceState);
         if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_home);
@@ -96,8 +97,8 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         Ui.press(this, btnSync);
 
         refresh = findViewById(R.id.refresh);
-        refresh.setProgressBackgroundColorSchemeColor(Ui.color(this, R.color.surface));
-        refresh.setColorSchemeColors(Ui.color(this, R.color.accent_text));
+        refresh.setProgressBackgroundColorSchemeColor(Ui.color(this, R.attr.n_surface));
+        refresh.setColorSchemeColors(Ui.color(this, R.attr.n_accent_text));
         refresh.setOnRefreshListener(() -> {
             if (Prefs.isCloud(this) && Sync.online(this)) Sync.request(this, true);
             else refresh.setRefreshing(false);
@@ -260,7 +261,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
                     System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL));
         } else text = getString(R.string.status_waiting);
         subtitle.setText(text);
-        subtitle.setTextColor(Ui.color(this, cloud && st == Sync.ERROR && !running ? R.color.bad : R.color.text_secondary));
+        subtitle.setTextColor(Ui.color(this, cloud && st == Sync.ERROR && !running ? R.attr.n_bad : R.attr.n_text_secondary));
     }
 
     // ------------------------------------------------------------------ quick access
@@ -283,17 +284,17 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         t.setGravity(Gravity.CENTER);
         t.setPadding(Ui.dp(this, 6), Ui.dp(this, 14), Ui.dp(this, 6), Ui.dp(this, 12));
         GradientDrawable fill = new GradientDrawable();
-        fill.setColor(Ui.color(this, R.color.surface));
-        fill.setStroke(Ui.dp(this, 1), Ui.color(this, R.color.stroke_soft));
+        fill.setColor(Ui.color(this, R.attr.n_surface));
+        fill.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke_soft));
         fill.setCornerRadius(Ui.dp(this, 24));
         GradientDrawable mask = new GradientDrawable();
         mask.setColor(0xFFFFFFFF);
         mask.setCornerRadius(Ui.dp(this, 24));
-        t.setBackground(new RippleDrawable(ColorStateList.valueOf(Ui.color(this, R.color.ripple)), fill, mask));
+        t.setBackground(new RippleDrawable(ColorStateList.valueOf(Ui.color(this, R.attr.n_ripple)), fill, mask));
 
         ImageView iv = new ImageView(this);
         iv.setImageResource(icon);
-        iv.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.color.accent_text)));
+        iv.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.attr.n_accent_text)));
         iv.setBackgroundResource(R.drawable.bg_circle_accent);
         int p = Ui.dp(this, 10);
         iv.setPadding(p, p, p, p);
@@ -305,7 +306,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         tv.setSingleLine(true);
         tv.setEllipsize(TextUtils.TruncateAt.END);
         tv.setGravity(Gravity.CENTER);
-        tv.setTextColor(Ui.color(this, R.color.text_secondary));
+        tv.setTextColor(Ui.color(this, R.attr.n_text_secondary));
         LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         tl.topMargin = Ui.dp(this, 8);
@@ -514,13 +515,13 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         card.setPadding(pad, pad, pad, Ui.dp(this, 12));
         float r = Ui.dp(this, 24);
         GradientDrawable fill = new GradientDrawable();
-        fill.setColor(Palette.card(n.color));
+        fill.setColor(Palette.card(this, n.color));
         fill.setCornerRadius(r);
-        fill.setStroke(Ui.dp(this, 1), Ui.color(this, R.color.stroke_soft));
+        fill.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke_soft));
         GradientDrawable mask = new GradientDrawable();
         mask.setColor(0xFFFFFFFF);
         mask.setCornerRadius(r);
-        card.setBackground(new RippleDrawable(ColorStateList.valueOf(Ui.color(this, R.color.ripple)), fill, mask));
+        card.setBackground(new RippleDrawable(ColorStateList.valueOf(Ui.color(this, R.attr.n_ripple)), fill, mask));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMargins(Ui.dp(this, 5), Ui.dp(this, 5), Ui.dp(this, 5), Ui.dp(this, 5));
@@ -535,7 +536,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             t.setEllipsize(TextUtils.TruncateAt.END);
             t.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
             t.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
-            t.setTextColor(Ui.color(this, R.color.text_primary));
+            t.setTextColor(Ui.color(this, R.attr.n_text_primary));
             card.addView(t);
         }
         String preview = preview(n);
@@ -548,7 +549,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             b.setLineSpacing(0, 1.1f);
             b.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
             b.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
-            b.setTextColor(Ui.color(this, n.title.trim().isEmpty() ? R.color.text_primary : R.color.text_secondary));
+            b.setTextColor(Ui.color(this, n.title.trim().isEmpty() ? R.attr.n_text_primary : R.attr.n_text_secondary));
             LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             if (!n.title.trim().isEmpty()) bl.topMargin = Ui.dp(this, 6);
@@ -563,7 +564,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         d.setTextSize(11);
         d.setSingleLine(true);
         d.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
-        d.setTextColor(Ui.color(this, R.color.text_hint));
+        d.setTextColor(Ui.color(this, R.attr.n_text_hint));
         foot.addView(d, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         if (n.kind == Note.KIND_LIST) {
             int total = 0, done = 0;
@@ -578,14 +579,14 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
                 p.setTextSize(11);
                 p.setSingleLine(true);
                 boolean all = done == total;
-                p.setTextColor(Ui.color(this, all ? R.color.ok : R.color.text_hint));
+                p.setTextColor(Ui.color(this, all ? R.attr.n_ok : R.attr.n_text_hint));
                 LinearLayout.LayoutParams pl = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 pl.setMarginStart(Ui.dp(this, 6));
                 foot.addView(p, pl);
             }
         }
-        if (n.pinned) foot.addView(smallIcon(R.drawable.ic_star, R.color.accent_text));
+        if (n.pinned) foot.addView(smallIcon(R.drawable.ic_star, R.attr.n_accent_text));
         LinearLayout.LayoutParams fl = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         fl.topMargin = Ui.dp(this, 10);

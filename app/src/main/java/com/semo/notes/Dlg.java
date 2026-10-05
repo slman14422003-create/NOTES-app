@@ -76,11 +76,11 @@ public class Dlg extends AlertDialog.Builder {
             t.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
             t.setMinHeight(Ui.dp(c, 52));
             t.setPaddingRelative(Ui.dp(c, 16), Ui.dp(c, 10), Ui.dp(c, 16), Ui.dp(c, 10));
-            t.setTextColor(Ui.color(c, destructive(c, label) ? R.color.bad : R.color.text_primary));
+            t.setTextColor(Ui.color(c, destructive(c, label) ? R.attr.n_bad : R.attr.n_text_primary));
             GradientDrawable mask = new GradientDrawable();
             mask.setColor(0xFFFFFFFF);
             mask.setCornerRadius(Ui.dp(c, 16));
-            t.setBackground(new RippleDrawable(ColorStateList.valueOf(Ui.color(c, R.color.ripple)), null, mask));
+            t.setBackground(new RippleDrawable(ColorStateList.valueOf(Ui.color(c, R.attr.n_ripple)), null, mask));
             return t;
         }
     }
@@ -92,7 +92,7 @@ public class Dlg extends AlertDialog.Builder {
         box.setGravity(Gravity.CENTER_HORIZONTAL);
         box.setPadding(Ui.dp(c, 24), Ui.dp(c, 28), Ui.dp(c, 24), Ui.dp(c, 4));
 
-        int col = Ui.color(c, ok ? R.color.ok : R.color.bad);
+        int col = Ui.color(c, ok ? R.attr.n_ok : R.attr.n_bad);
         ImageView icon = new ImageView(c);
         icon.setImageResource(ok ? R.drawable.ic_check_circle : R.drawable.ic_cancel);
         icon.setImageTintList(ColorStateList.valueOf(col));
@@ -107,7 +107,7 @@ public class Dlg extends AlertDialog.Builder {
 
         TextView t = new TextView(c);
         t.setText(title);
-        t.setTextColor(Ui.color(c, R.color.text_primary));
+        t.setTextColor(Ui.color(c, R.attr.n_text_primary));
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         t.setTypeface(Typeface.DEFAULT_BOLD);
         t.setGravity(Gravity.CENTER);
@@ -118,7 +118,7 @@ public class Dlg extends AlertDialog.Builder {
 
         TextView m = new TextView(c);
         m.setText(message);
-        m.setTextColor(Ui.color(c, R.color.text_secondary));
+        m.setTextColor(Ui.color(c, R.attr.n_text_secondary));
         m.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         m.setLineSpacing(0, 1.2f);
         m.setGravity(Gravity.CENTER);
@@ -141,13 +141,13 @@ public class Dlg extends AlertDialog.Builder {
         if (title != null) {
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
             title.setTypeface(Typeface.DEFAULT_BOLD);
-            title.setTextColor(Ui.color(c, R.color.text_primary));
+            title.setTextColor(Ui.color(c, R.attr.n_text_primary));
             title.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
         }
         TextView msg = d.findViewById(android.R.id.message);
         if (msg != null) {
             msg.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-            msg.setTextColor(Ui.color(c, R.color.text_secondary));
+            msg.setTextColor(Ui.color(c, R.attr.n_text_secondary));
             msg.setLineSpacing(0, 1.2f);
             msg.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
         }
@@ -201,7 +201,7 @@ public class Dlg extends AlertDialog.Builder {
         b.setStateListAnimator(null);
         b.setBackgroundResource(kind == 1 ? R.drawable.btn_secondary
                 : kind == 2 ? R.drawable.btn_danger : R.drawable.btn_primary);
-        b.setTextColor(Ui.color(c, kind == 1 ? R.color.text_primary : R.color.on_accent));
+        b.setTextColor(Ui.color(c, kind == 1 ? R.attr.n_text_primary : R.attr.n_on_accent));
         ViewGroup.LayoutParams lp = b.getLayoutParams();
         if (lp instanceof LinearLayout.LayoutParams) {
             LinearLayout.LayoutParams m = (LinearLayout.LayoutParams) lp;

@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.format.DateUtils;
+import android.graphics.drawable.GradientDrawable;
+import android.view.Gravity;
+import android.view.ViewGroup;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -41,6 +44,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeKit.apply(this);
         super.onCreate(savedInstanceState);
         if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_settings);
@@ -105,6 +109,10 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
         String accSub = Prefs.anonymous(this) ? getString(R.string.guest_sub) : getString(R.string.signed_in);
         content.addView(Ui.rowView(this, content, new Row(R.drawable.ic_user, false, accTitle, accSub, false, false), null));
 
+        // appearance
+        content.addView(Ui.sectionTitle(this, getString(R.string.sec_appearance)));
+        content.addView(appearanceCard());
+
         // language
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_language)));
         Row lang = new Row(R.drawable.ic_language, false, getString(R.string.language), Lang.label(this), false, true);
@@ -121,7 +129,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
         content.addView(secure.view);
 
         Row wipe = new Row(R.drawable.ic_trash_sweep, false, getString(R.string.delete_all_data),
-                getString(R.string.delete_all_data_sub), false, false).tint(Ui.color(this, R.color.bad));
+                getString(R.string.delete_all_data_sub), false, false).tint(Ui.color(this, R.attr.n_bad));
         content.addView(Ui.rowView(this, content, wipe, v -> confirmDeleteAll()));
 
         // updates
@@ -187,9 +195,97 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
                         getString(R.string.version, BuildConfig.VERSION_NAME), false, false), null));
         if (cloud) {
             Row out = new Row(R.drawable.ic_logout, false, getString(R.string.sign_out), null, false, false)
-                    .tint(Ui.color(this, R.color.bad));
+                    .tint(Ui.color(this, R.attr.n_bad));
             content.addView(Ui.rowView(this, content, out, v -> confirmSignOut()));
         }
+    }
+
+    // ------------------------------------------------------------------ appearance
+
+    /** Day / night / system chips and the five palette swatches (berry, green, blue, white, yellow). */
+    private View appearanceCard() {
+        final String mode = Prefs.themeMode(this);
+        final String accent = Prefs.themeAccent(this);
+        final boolean dark = ThemeKit.isDark(this);
+
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackgroundResource(R.drawable.bg_card);
+        int pad = Ui.dp(this, 18);
+        card.setPadding(pad, Ui.dp(this, 16), pad, Ui.dp(this, 14));
+        LinearLayout.LayoutParams cl = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cl.setMargins(Ui.dp(this, 14), Ui.dp(this, 4), Ui.dp(this, 14), Ui.dp(this, 4));
+        card.setLayoutParams(cl);
+
+        card.addView(caption(R.string.th_mode));
+        LinearLayout modes = new LinearLayout(this);
+        modes.setOrientation(LinearLayout.HORIZONTAL);
+        for (int i = 0; i < ThemeKit.MODES.length; i++) {
+            final String m = ThemeKit.MODES[i];
+            TextView chip = Ui.chip(this, getString(ThemeKit.MODE_NAMES[i]), m.equals(mode));
+            chip.setOnClickListener(v -> {
+                if (m.equals(Prefs.themeMode(this))) return;
+                Prefs.setThemeMode(this, m);
+                recreate();
+            });
+            modes.addView(chip);
+        }
+        card.addView(modes);
+
+        View gap = new View(this);
+        card.addView(gap, new LinearLayout.LayoutParams(1, Ui.dp(this, 16)));
+        card.addView(caption(R.string.th_color));
+
+        LinearLayout swatches = new LinearLayout(this);
+        swatches.setOrientation(LinearLayout.HORIZONTAL);
+        for (int i = 0; i < ThemeKit.ACCENTS.length; i++) {
+            final String ac = ThemeKit.ACCENTS[i];
+            LinearLayout cell = new LinearLayout(this);
+            cell.setOrientation(LinearLayout.VERTICAL);
+            cell.setGravity(Gravity.CENTER_HORIZONTAL);
+            cell.setPadding(0, Ui.dp(this, 4), 0, Ui.dp(this, 2));
+
+            boolean sel = ac.equals(accent);
+            View dot = new View(this);
+            GradientDrawable g = new GradientDrawable();
+            g.setShape(GradientDrawable.OVAL);
+            g.setColor(ThemeKit.swatch(ac, dark));
+            g.setStroke(Ui.dp(this, sel ? 3 : 1), sel ? Ui.color(this, R.attr.n_text_primary) : Ui.color(this, R.attr.n_stroke));
+            dot.setBackground(g);
+            cell.addView(dot, new LinearLayout.LayoutParams(Ui.dp(this, 40), Ui.dp(this, 40)));
+
+            TextView name = new TextView(this);
+            name.setText(ThemeKit.ACCENT_NAMES[i]);
+            name.setTextSize(11.5f);
+            name.setSingleLine(true);
+            name.setGravity(Gravity.CENTER);
+            name.setTextColor(Ui.color(this, sel ? R.attr.n_text_primary : R.attr.n_text_secondary));
+            LinearLayout.LayoutParams nl = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            nl.topMargin = Ui.dp(this, 6);
+            cell.addView(name, nl);
+
+            Ui.press(this, cell);
+            cell.setOnClickListener(v -> {
+                if (ac.equals(Prefs.themeAccent(this))) return;
+                Prefs.setThemeAccent(this, ac);
+                recreate();
+            });
+            swatches.addView(cell, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        }
+        card.addView(swatches);
+        return card;
+    }
+
+    private TextView caption(int res) {
+        TextView t = new TextView(this);
+        t.setText(res);
+        t.setTextSize(13);
+        t.setTextColor(Ui.color(this, R.attr.n_text_secondary));
+        t.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        t.setPadding(0, 0, 0, Ui.dp(this, 10));
+        return t;
     }
 
     // ------------------------------------------------------------------ backup file
@@ -252,7 +348,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
                     n.title = clip(o.optString("title", ""), 300);
                     n.body = clip(o.optString("body", ""), 100_000);
                     n.kind = o.optInt("kind", 0) == 1 ? 1 : 0;
-                    n.color = Math.max(0, Math.min(Palette.CARD.length - 1, o.optInt("color", 0)));
+                    n.color = Math.max(0, Math.min(Palette.COUNT - 1, o.optInt("color", 0)));
                     n.pinned = o.optBoolean("pinned", false);
                     n.archived = o.optBoolean("archived", false);
                     n.trashed = o.optBoolean("trashed", false);

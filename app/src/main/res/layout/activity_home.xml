@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg"
+    android:background="?attr/n_bg"
     android:orientation="vertical">
 
     <include layout="@layout/view_header" />
@@ -45,7 +45,7 @@
                 android:background="@drawable/bg_input"
                 android:drawablePadding="10dp"
                 android:drawableStart="@drawable/ic_search"
-                android:drawableTint="@color/text_hint"
+                android:drawableTint="?attr/n_text_hint"
                 android:hint="@string/search_hint"
                 android:imeOptions="actionSearch"
                 android:importantForAutofill="no"
@@ -54,8 +54,8 @@
                 android:paddingStart="18dp"
                 android:paddingEnd="18dp"
                 android:textAlignment="viewStart"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint"
+                android:textColor="?attr/n_text_primary"
+                android:textColorHint="?attr/n_text_hint"
                 android:textSize="15sp" />
 
             <LinearLayout
@@ -93,7 +93,7 @@
                 android:paddingBottom="6dp"
                 android:text="@string/sec_pinned"
                 android:textAlignment="viewStart"
-                android:textColor="@color/text_secondary"
+                android:textColor="?attr/n_text_secondary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -114,7 +114,7 @@
                 android:paddingEnd="26dp"
                 android:paddingBottom="6dp"
                 android:textAlignment="viewStart"
-                android:textColor="@color/text_secondary"
+                android:textColor="?attr/n_text_secondary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -168,7 +168,7 @@
                     android:importantForAccessibility="no"
                     android:padding="22dp"
                     android:src="@drawable/ic_note"
-                    android:tint="@color/accent_text" />
+                    android:tint="?attr/n_accent_text" />
 
                 <TextView
                     android:id="@+id/emptyTitle"
@@ -177,7 +177,7 @@
                     android:layout_marginTop="18dp"
                     android:fontFamily="serif"
                     android:gravity="center"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/n_text_primary"
                     android:textSize="20sp" />
 
                 <TextView
@@ -187,7 +187,7 @@
                     android:layout_marginTop="8dp"
                     android:gravity="center"
                     android:lineSpacingMultiplier="1.2"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/n_text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
         </LinearLayout>
@@ -215,7 +215,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textAlignment="viewStart"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/n_text_primary"
             android:textSize="14sp" />
 
         <TextView
@@ -227,7 +227,7 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:text="@string/undo"
-            android:textColor="@color/accent_text"
+            android:textColor="?attr/n_accent_text"
             android:textSize="14sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -269,8 +269,8 @@
             android:paddingEnd="18dp"
             android:paddingBottom="10dp"
             android:textAlignment="viewStart"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
+            android:textColor="?attr/n_text_primary"
+            android:textColorHint="?attr/n_text_hint"
             android:textSize="15sp" />
 
         <ImageButton
@@ -281,6 +281,6 @@
             android:contentDescription="@string/save"
             android:scaleType="center"
             android:src="@drawable/ic_send"
-            android:tint="@color/accent_text" />
+            android:tint="?attr/n_accent_text" />
     </LinearLayout>
 </LinearLayout>

@@ -61,6 +61,7 @@ public class NoteEditorActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeKit.apply(this);
         super.onCreate(savedInstanceState);
         if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_editor);
@@ -191,15 +192,15 @@ public class NoteEditorActivity extends AppCompatActivity {
     private void applyColor() {
         float r = Ui.dp(this, 28);
         GradientDrawable g = new GradientDrawable();
-        g.setColor(Palette.card(note.color));
+        g.setColor(Palette.card(this, note.color));
         g.setCornerRadius(r);
-        g.setStroke(Ui.dp(this, 1), Ui.color(this, R.color.stroke_soft));
+        g.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke_soft));
         page.setBackground(g);
     }
 
     private void applyPinIcon() {
         btnPin.setImageTintList(ColorStateList.valueOf(Ui.color(this,
-                note.pinned ? R.color.accent_text : R.color.text_primary)));
+                note.pinned ? R.attr.n_accent_text : R.attr.n_text_primary)));
         btnPin.setContentDescription(getString(note.pinned ? R.string.unpin : R.string.pin));
     }
 
@@ -211,8 +212,8 @@ public class NoteEditorActivity extends AppCompatActivity {
             GradientDrawable g = new GradientDrawable();
             g.setShape(GradientDrawable.OVAL);
             g.setColor(Palette.dot(i));
-            if (i == note.color) g.setStroke(Ui.dp(this, 3), 0xFFFFFFFF);
-            else g.setStroke(Ui.dp(this, 1), Ui.color(this, R.color.stroke));
+            if (i == note.color) g.setStroke(Ui.dp(this, 3), Ui.color(this, R.attr.n_text_primary));
+            else g.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke));
             d.setBackground(g);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(Ui.dp(this, 32), Ui.dp(this, 32));
             lp.setMarginEnd(Ui.dp(this, 10));
@@ -258,7 +259,7 @@ public class NoteEditorActivity extends AppCompatActivity {
         et.setText(item.text);
         et.setTextSize(16);
         et.setHint(R.string.item_hint);
-        et.setHintTextColor(Ui.color(this, R.color.text_hint));
+        et.setHintTextColor(Ui.color(this, R.attr.n_text_hint));
         // alignment follows the language of the text itself, so Arabic and English notes both read naturally
         et.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
         et.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
@@ -273,7 +274,7 @@ public class NoteEditorActivity extends AppCompatActivity {
         ImageButton del = new ImageButton(this);
         del.setBackground(null);
         del.setImageResource(R.drawable.ic_cancel);
-        del.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.color.text_hint)));
+        del.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.attr.n_text_hint)));
         del.setContentDescription(getString(R.string.delete));
         row.addView(del, new LinearLayout.LayoutParams(Ui.dp(this, 40), Ui.dp(this, 40)));
 
@@ -328,7 +329,7 @@ public class NoteEditorActivity extends AppCompatActivity {
     }
 
     private void styleItem(EditText et, boolean done) {
-        et.setTextColor(Ui.color(this, done ? R.color.text_hint : R.color.text_primary));
+        et.setTextColor(Ui.color(this, done ? R.attr.n_text_hint : R.attr.n_text_primary));
         if (done) et.setPaintFlags(et.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
         else et.setPaintFlags(et.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
     }

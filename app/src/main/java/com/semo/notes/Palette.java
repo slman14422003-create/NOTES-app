@@ -1,20 +1,25 @@
 package com.semo.notes;
 
-/** Note colours: a soft dark tint for the card and a brighter dot for the colour picker. */
+import android.content.Context;
+
+/** Note colours: the card tint comes from the active theme (day/night), the dot in the picker is a fixed bright colour. */
 public final class Palette {
     private Palette() {
     }
 
-    public static final int[] CARD = {
-            0xFF303030, 0xFF4A2B2B, 0xFF4A3524, 0xFF453F1F, 0xFF24402E, 0xFF1F3350, 0xFF3B2A4F};
+    public static final int COUNT = 7;
+
+    private static final int[] CARD_ATTR = {
+            R.attr.n_surface, R.attr.n_note1, R.attr.n_note2, R.attr.n_note3,
+            R.attr.n_note4, R.attr.n_note5, R.attr.n_note6};
     public static final int[] DOT = {
             0xFFB4B4B4, 0xFFFF6B6B, 0xFFF59E4A, 0xFFF5D84A, 0xFF4ADE80, 0xFF6AA6FF, 0xFFB794F6};
 
-    public static int card(int i) {
-        return CARD[Math.max(0, Math.min(CARD.length - 1, i))];
+    public static int card(Context c, int i) {
+        return Ui.color(c, CARD_ATTR[Math.max(0, Math.min(COUNT - 1, i))]);
     }
 
     public static int dot(int i) {
-        return DOT[Math.max(0, Math.min(DOT.length - 1, i))];
+        return DOT[Math.max(0, Math.min(COUNT - 1, i))];
     }
 }

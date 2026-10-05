@@ -34,7 +34,7 @@
             android:fontFamily="serif"
             android:gravity="center"
             android:maxLines="1"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/n_text_primary"
             android:textSize="20sp"
             app:autoSizeMaxTextSize="20sp"
             app:autoSizeMinTextSize="14sp"
@@ -49,7 +49,7 @@
             android:ellipsize="middle"
             android:gravity="center"
             android:singleLine="true"
-            android:textColor="@color/text_secondary"
+            android:textColor="?attr/n_text_secondary"
             android:textSize="12sp" />
     </LinearLayout>
 

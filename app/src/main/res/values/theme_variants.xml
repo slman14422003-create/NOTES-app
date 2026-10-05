@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 2 modes x 5 palettes. Chosen at runtime by ThemeKit.apply(); every colour in the UI is a ?attr/n_* from here. -->
+
+    <style name="AppThemeBase.Dark" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">?attr/n_accent</item>
+        <item name="colorPrimaryDark">?attr/n_bg</item>
+        <item name="colorAccent">?attr/n_accent_text</item>
+        <item name="android:windowBackground">?attr/n_bg</item>
+        <item name="android:statusBarColor">?attr/n_bg</item>
+        <item name="android:navigationBarColor">?attr/n_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:textColorPrimary">?attr/n_text_primary</item>
+        <item name="android:textColorSecondary">?attr/n_text_secondary</item>
+        <item name="android:textColorHint">?attr/n_text_hint</item>
+        <item name="alertDialogTheme">@style/AppDialog</item>
+        <item name="android:colorBackground">?attr/n_bg</item>
+        <item name="colorControlNormal">?attr/n_text_secondary</item>
+        <item name="colorControlActivated">?attr/n_accent_text</item>
+        <item name="android:textColorLink">?attr/n_accent_text</item>
+        <item name="android:windowAnimationStyle">@style/ActivityAnim</item>
+    </style>
+
+    <style name="AppThemeBase.Light" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">?attr/n_accent</item>
+        <item name="colorPrimaryDark">?attr/n_bg</item>
+        <item name="colorAccent">?attr/n_accent_text</item>
+        <item name="android:windowBackground">?attr/n_bg</item>
+        <item name="android:statusBarColor">?attr/n_bg</item>
+        <item name="android:navigationBarColor">?attr/n_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:textColorPrimary">?attr/n_text_primary</item>
+        <item name="android:textColorSecondary">?attr/n_text_secondary</item>
+        <item name="android:textColorHint">?attr/n_text_hint</item>
+        <item name="alertDialogTheme">@style/AppDialog</item>
+        <item name="android:colorBackground">?attr/n_bg</item>
+        <item name="colorControlNormal">?attr/n_text_secondary</item>
+        <item name="colorControlActivated">?attr/n_accent_text</item>
+        <item name="android:textColorLink">?attr/n_accent_text</item>
+        <item name="android:windowAnimationStyle">@style/ActivityAnim</item>
+    </style>
+
+    <style name="Theme.N.Dark.Mono" parent="AppThemeBase.Dark">
+        <item name="n_bg">#000000</item>
+        <item name="n_surface">#303030</item>
+        <item name="n_surface_high">#414141</item>
+        <item name="n_field">#212121</item>
+        <item name="n_stroke">#454545</item>
+        <item name="n_stroke_soft">#2A2A2A</item>
+        <item name="n_text_primary">#FFFFFF</item>
+        <item name="n_text_secondary">#B4B4B4</item>
+        <item name="n_text_hint">#8E8E8E</item>
+        <item name="n_accent">#FFFFFF</item>
+        <item name="n_accent_text">#E6E6E6</item>
+        <item name="n_accent_soft">#2B2B2B</item>
+        <item name="n_neutral_soft">#3A3A3A</item>
+        <item name="n_on_accent">#000000</item>
+        <item name="n_ripple">#22FFFFFF</item>
+        <item name="n_ripple_on_accent">#22000000</item>
+        <item name="n_ok">#4ADE80</item>
+        <item name="n_bad">#FF6B6B</item>
+        <item name="n_warn">#F5B94A</item>
+        <item name="n_info">#6AA6FF</item>
+        <item name="n_note1">#4A2B2B</item>
+        <item name="n_note2">#4A3524</item>
+        <item name="n_note3">#453F1F</item>
+        <item name="n_note4">#24402E</item>
+        <item name="n_note5">#1F3350</item>
+        <item name="n_note6">#3B2A4F</item>
+    </style>
+
+    <style name="Theme.N.Light.Mono" parent="AppThemeBase.Light">
+        <item name="n_bg">#F5F5F6</item>
+        <item name="n_surface">#FFFFFF</item>
+        <item name="n_surface_high">#E6E6E8</item>
+        <item name="n_field">#EFEFF1</item>
+        <item name="n_stroke">#D2D2D6</item>
+        <item name="n_stroke_soft">#E6E6E9</item>
+        <item name="n_text_primary">#111111</item>
+        <item name="n_text_secondary">#55555B</item>
+        <item name="n_text_hint">#7E7E85</item>
+        <item name="n_accent">#111111</item>
+        <item name="n_accent_text">#111111</item>
+        <item name="n_accent_soft">#E9E9EB</item>
+        <item name="n_neutral_soft">#EDEDEF</item>
+        <item name="n_on_accent">#FFFFFF</item>
+        <item name="n_ripple">#1F000000</item>
+        <item name="n_ripple_on_accent">#33FFFFFF</item>
+        <item name="n_ok">#15803D</item>
+        <item name="n_bad">#D93B3B</item>
+        <item name="n_warn">#B7791F</item>
+        <item name="n_info">#2563EB</item>
+        <item name="n_note1">#FDE3E3</item>
+        <item name="n_note2">#FDEAD2</item>
+        <item name="n_note3">#FBF2C4</item>
+        <item name="n_note4">#DDF3E3</item>
+        <item name="n_note5">#DAE8FD</item>
+        <item name="n_note6">#EADFFB</item>
+    </style>
+
+    <style name="Theme.N.Dark.Blue" parent="AppThemeBase.Dark">
+        <item name="n_bg">#0B0D11</item>
+        <item name="n_surface">#21242B</item>
+        <item name="n_surface_high">#2F333C</item>
+        <item name="n_field">#16181D</item>
+        <item name="n_stroke">#3B4049</item>
+        <item name="n_stroke_soft">#262931</item>
+        <item name="n_text_primary">#F5F7F9</item>
+        <item name="n_text_secondary">#B2B5BD</item>
+        <item name="n_text_hint">#858994</item>
+        <item name="n_accent">#4C86FF</item>
+        <item name="n_accent_text">#8FB3FF</item>
+        <item name="n_accent_soft">#14244A</item>
+        <item name="n_neutral_soft">#2D3139</item>
+        <item name="n_on_accent">#FFFFFF</item>
+        <item name="n_ripple">#22FFFFFF</item>
+        <item name="n_ripple_on_accent">#33FFFFFF</item>
+        <item name="n_ok">#4ADE80</item>
+        <item name="n_bad">#FF6B6B</item>
+        <item name="n_warn">#F5B94A</item>
+        <item name="n_info">#6AA6FF</item>
+        <item name="n_note1">#4A2B2B</item>
+        <item name="n_note2">#4A3524</item>
+        <item name="n_note3">#453F1F</item>
+        <item name="n_note4">#24402E</item>
+        <item name="n_note5">#1F3350</item>
+        <item name="n_note6">#3B2A4F</item>
+    </style>
+
+    <style name="Theme.N.Light.Blue" parent="AppThemeBase.Light">
+        <item name="n_bg">#F2F4F7</item>
+        <item name="n_surface">#FFFFFF</item>
+        <item name="n_surface_high">#E1E4EA</item>
+        <item name="n_field">#EEF0F4</item>
+        <item name="n_stroke">#CBCFD7</item>
+        <item name="n_stroke_soft">#E2E4E9</item>
+        <item name="n_text_primary">#10141E</item>
+        <item name="n_text_secondary">#4E5360</item>
+        <item name="n_text_hint">#767C89</item>
+        <item name="n_accent">#2F6BFF</item>
+        <item name="n_accent_text">#1F5BE8</item>
+        <item name="n_accent_soft">#E1EAFF</item>
+        <item name="n_neutral_soft">#EAECF0</item>
+        <item name="n_on_accent">#FFFFFF</item>
+        <item name="n_ripple">#1F000000</item>
+        <item name="n_ripple_on_accent">#33FFFFFF</item>
+        <item name="n_ok">#15803D</item>
+        <item name="n_bad">#D93B3B</item>
+        <item name="n_warn">#B7791F</item>
+        <item name="n_info">#2563EB</item>
+        <item name="n_note1">#FDE3E3</item>
+        <item name="n_note2">#FDEAD2</item>
+        <item name="n_note3">#FBF2C4</item>
+        <item name="n_note4">#DDF3E3</item>
+        <item name="n_note5">#DAE8FD</item>
+        <item name="n_note6">#EADFFB</item>
+    </style>
+
+    <style name="Theme.N.Dark.Green" parent="AppThemeBase.Dark">
+        <item name="n_bg">#0B110E</item>
+        <item name="n_surface">#222A26</item>
+        <item name="n_surface_high">#303B36</item>
+        <item name="n_field">#161D1A</item>
+        <item name="n_stroke">#3C4842</item>
+        <item name="n_stroke_soft">#27302B</item>
+        <item name="n_text_primary">#F6F9F7</item>
+        <item name="n_text_secondary">#B3BCB8</item>
+        <item name="n_text_hint">#86938C</item>
+        <item name="n_accent">#3DD57F</item>
+        <item name="n_accent_text">#6CE6A0</item>
+        <item name="n_accent_soft">#0F2E1D</item>
+        <item name="n_neutral_soft">#2E3833</item>
+        <item name="n_on_accent">#052713</item>
+        <item name="n_ripple">#22FFFFFF</item>
+        <item name="n_ripple_on_accent">#22000000</item>
+        <item name="n_ok">#4ADE80</item>
+        <item name="n_bad">#FF6B6B</item>
+        <item name="n_warn">#F5B94A</item>
+        <item name="n_info">#6AA6FF</item>
+        <item name="n_note1">#4A2B2B</item>
+        <item name="n_note2">#4A3524</item>
+        <item name="n_note3">#453F1F</item>
+        <item name="n_note4">#24402E</item>
+        <item name="n_note5">#1F3350</item>
+        <item name="n_note6">#3B2A4F</item>
+    </style>
+
+    <style name="Theme.N.Light.Green" parent="AppThemeBase.Light">
+        <item name="n_bg">#F3F7F5</item>
+        <item name="n_surface">#FFFFFF</item>
+        <item name="n_surface_high">#E2E9E6</item>
+        <item name="n_field">#EFF3F1</item>
+        <item name="n_stroke">#CCD6D1</item>
+        <item name="n_stroke_soft">#E2E9E6</item>
+        <item name="n_text_primary">#111D17</item>
+        <item name="n_text_secondary">#4F5E57</item>
+        <item name="n_text_hint">#778880</item>
+        <item name="n_accent">#15803D</item>
+        <item name="n_accent_text">#15803D</item>
+        <item name="n_accent_soft">#DAF4E3</item>
+        <item name="n_neutral_soft">#EBF0ED</item>
+        <item name="n_on_accent">#FFFFFF</item>
+        <item name="n_ripple">#1F000000</item>
+        <item name="n_ripple_on_accent">#33FFFFFF</item>
+        <item name="n_ok">#15803D</item>
+        <item name="n_bad">#D93B3B</item>
+        <item name="n_warn">#B7791F</item>
+        <item name="n_info">#2563EB</item>
+        <item name="n_note1">#FDE3E3</item>
+        <item name="n_note2">#FDEAD2</item>
+        <item name="n_note3">#FBF2C4</item>
+        <item name="n_note4">#DDF3E3</item>
+        <item name="n_note5">#DAE8FD</item>
+        <item name="n_note6">#EADFFB</item>
+    </style>
+
+    <style name="Theme.N.Dark.Berry" parent="AppThemeBase.Dark">
+        <item name="n_bg">#110B0E</item>
+        <item name="n_surface">#2B2226</item>
+        <item name="n_surface_high">#3B3036</item>
+        <item name="n_field">#1D161A</item>
+        <item name="n_stroke">#493C42</item>
+        <item name="n_stroke_soft">#31262B</item>
+        <item name="n_text_primary">#F9F6F7</item>
+        <item name="n_text_secondary">#BDB2B8</item>
+        <item name="n_text_hint">#93858C</item>
+        <item name="n_accent">#DB4A93</item>
+        <item name="n_accent_text">#FF92C9</item>
+        <item name="n_accent_soft">#3A1428</item>
+        <item name="n_neutral_soft">#392D33</item>
+        <item name="n_on_accent">#FFFFFF</item>
+        <item name="n_ripple">#22FFFFFF</item>
+        <item name="n_ripple_on_accent">#33FFFFFF</item>
+        <item name="n_ok">#4ADE80</item>
+        <item name="n_bad">#FF6B6B</item>
+        <item name="n_warn">#F5B94A</item>
+        <item name="n_info">#6AA6FF</item>
+        <item name="n_note1">#4A2B2B</item>
+        <item name="n_note2">#4A3524</item>
+        <item name="n_note3">#453F1F</item>
+        <item name="n_note4">#24402E</item>
+        <item name="n_note5">#1F3350</item>
+        <item name="n_note6">#3B2A4F</item>
+    </style>
+
+    <style name="Theme.N.Light.Berry" parent="AppThemeBase.Light">
+        <item name="n_bg">#F7F2F5</item>
+        <item name="n_surface">#FFFFFF</item>
+        <item name="n_surface_high">#EAE1E6</item>
+        <item name="n_field">#F4EEF1</item>
+        <item name="n_stroke">#D7CCD1</item>
+        <item name="n_stroke_soft">#E9E2E6</item>
+        <item name="n_text_primary">#1E1017</item>
+        <item name="n_text_secondary">#5F4E57</item>
+        <item name="n_text_hint">#897680</item>
+        <item name="n_accent">#B0307A</item>
+        <item name="n_accent_text">#A3246F</item>
+        <item name="n_accent_soft">#FADFEE</item>
+        <item name="n_neutral_soft">#F0EBED</item>
+        <item name="n_on_accent">#FFFFFF</item>
+        <item name="n_ripple">#1F000000</item>
+        <item name="n_ripple_on_accent">#33FFFFFF</item>
+        <item name="n_ok">#15803D</item>
+        <item name="n_bad">#D93B3B</item>
+        <item name="n_warn">#B7791F</item>
+        <item name="n_info">#2563EB</item>
+        <item name="n_note1">#FDE3E3</item>
+        <item name="n_note2">#FDEAD2</item>
+        <item name="n_note3">#FBF2C4</item>
+        <item name="n_note4">#DDF3E3</item>
+        <item name="n_note5">#DAE8FD</item>
+        <item name="n_note6">#EADFFB</item>
+    </style>
+
+    <style name="Theme.N.Dark.Yellow" parent="AppThemeBase.Dark">
+        <item name="n_bg">#110F0C</item>
+        <item name="n_surface">#2A2822</item>
+        <item name="n_surface_high">#3A3831</item>
+        <item name="n_field">#1C1B17</item>
+        <item name="n_stroke">#48453D</item>
+        <item name="n_stroke_soft">#302E27</item>
+        <item name="n_text_primary">#F9F8F6</item>
+        <item name="n_text_secondary">#BCBAB3</item>
+        <item name="n_text_hint">#928F87</item>
+        <item name="n_accent">#FFD23F</item>
+        <item name="n_accent_text">#FFE17D</item>
+        <item name="n_accent_soft">#33280A</item>
+        <item name="n_neutral_soft">#38352E</item>
+        <item name="n_on_accent">#1F1700</item>
+        <item name="n_ripple">#22FFFFFF</item>
+        <item name="n_ripple_on_accent">#22000000</item>
+        <item name="n_ok">#4ADE80</item>
+        <item name="n_bad">#FF6B6B</item>
+        <item name="n_warn">#F5B94A</item>
+        <item name="n_info">#6AA6FF</item>
+        <item name="n_note1">#4A2B2B</item>
+        <item name="n_note2">#4A3524</item>
+        <item name="n_note3">#453F1F</item>
+        <item name="n_note4">#24402E</item>
+        <item name="n_note5">#1F3350</item>
+        <item name="n_note6">#3B2A4F</item>
+    </style>
+
+    <style name="Theme.N.Light.Yellow" parent="AppThemeBase.Light">
+        <item name="n_bg">#F7F6F3</item>
+        <item name="n_surface">#FFFFFF</item>
+        <item name="n_surface_high">#E9E7E2</item>
+        <item name="n_field">#F3F2EF</item>
+        <item name="n_stroke">#D6D4CD</item>
+        <item name="n_stroke_soft">#E9E7E2</item>
+        <item name="n_text_primary">#1C1A11</item>
+        <item name="n_text_secondary">#5E5A50</item>
+        <item name="n_text_hint">#878478</item>
+        <item name="n_accent">#F2B705</item>
+        <item name="n_accent_text">#8A6400</item>
+        <item name="n_accent_soft">#FFF1C2</item>
+        <item name="n_neutral_soft">#EFEEEB</item>
+        <item name="n_on_accent">#1F1700</item>
+        <item name="n_ripple">#1F000000</item>
+        <item name="n_ripple_on_accent">#22000000</item>
+        <item name="n_ok">#15803D</item>
+        <item name="n_bad">#D93B3B</item>
+        <item name="n_warn">#B7791F</item>
+        <item name="n_info">#2563EB</item>
+        <item name="n_note1">#FDE3E3</item>
+        <item name="n_note2">#FDEAD2</item>
+        <item name="n_note3">#FBF2C4</item>
+        <item name="n_note4">#DDF3E3</item>
+        <item name="n_note5">#DAE8FD</item>
+        <item name="n_note6">#EADFFB</item>
+    </style>
+
+    <!-- default (first launch / manifest): dark, monochrome = the original look -->
+    <style name="AppTheme" parent="Theme.N.Dark.Mono" />
+</resources>

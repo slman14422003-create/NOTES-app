@@ -131,6 +131,24 @@ public final class Prefs {
         sp(c).edit().putString("lang", v == null ? "" : v).apply();
     }
 
+    /** "dark" (default), "light" or "system". */
+    public static String themeMode(Context c) {
+        return sp(c).getString("themeMode", "dark");
+    }
+
+    public static void setThemeMode(Context c, String v) {
+        sp(c).edit().putString("themeMode", v).apply();
+    }
+
+    /** "mono" (default), "blue", "green", "berry" or "yellow". */
+    public static String themeAccent(Context c) {
+        return sp(c).getString("themeAccent", "mono");
+    }
+
+    public static void setThemeAccent(Context c, String v) {
+        sp(c).edit().putString("themeAccent", v).apply();
+    }
+
     /** Blocks screenshots and hides the app content in the recent-apps switcher. */
     public static boolean secureScreen(Context c) {
         return sp(c).getBoolean("secure", false);

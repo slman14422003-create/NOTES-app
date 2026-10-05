@@ -7,7 +7,7 @@
             android:insetRight="4dp"
             android:insetBottom="4dp">
             <shape android:shape="oval">
-                <solid android:color="#FFFFFF" />
+                <solid android:color="?attr/n_on_accent" />
                 <size android:width="20dp" android:height="20dp" />
             </shape>
         </inset>
@@ -19,7 +19,7 @@
             android:insetRight="4dp"
             android:insetBottom="4dp">
             <shape android:shape="oval">
-                <solid android:color="@color/text_secondary" />
+                <solid android:color="?attr/n_text_secondary" />
                 <size android:width="20dp" android:height="20dp" />
             </shape>
         </inset>
