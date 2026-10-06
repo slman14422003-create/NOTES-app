@@ -19,7 +19,7 @@ public class CaptureActivity extends Activity {
         super.onCreate(savedInstanceState);
         if (Integrity.enforce(this)) return;
         Intent in = getIntent();
-        if (!Prefs.isCloud(this)) {
+        if (!Prefs.hasAccess(this)) {
             Toast.makeText(this, R.string.sign_in_first, Toast.LENGTH_LONG).show();
             startActivity(new Intent(this, LoginActivity.class));
             finish();

@@ -6,13 +6,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * First launch only: a short terms + privacy summary. "Agree" continues to the sign-in / home screen,
  * "Exit" (or the back button) closes the app. Nothing else in the app opens until this is accepted.
  */
-public class TermsActivity extends AppCompatActivity {
+public class TermsActivity extends SmoothActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

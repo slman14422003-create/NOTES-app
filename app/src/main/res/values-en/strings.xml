@@ -153,7 +153,7 @@
     <string name="upd_sig_bad">The update is signed with a different key than the installed app, so it cannot install over it. Uninstall the old version once and install the new one (export your notes first)</string>
     <string name="upd_pkg_bad">The downloaded file is not this app</string>
     <string name="acct_switched">Notes of the previous account were removed from this device so they do not mix with yours</string>
-    <string name="login_privacy">Google is only used to tell your notes apart. Your notes are stored in your own account on Firebase and nobody else can see them.</string>
+    <string name="login_privacy">Google is only used to tell your notes apart. Your notes are stored in your own account on Firebase and nobody else can see them. If you continue without an account, your notes stay on this device only.</string>
     <string name="sign_in_first">Sign in with Google first</string>
     <string name="undo">Undo</string>
     <string name="undo_trash">Note moved to the trash</string>
@@ -202,4 +202,13 @@
     <string name="about_build_row">Build number</string>
     <string name="about_updates_section">Updates</string>
     <string name="about_credit">Developed by slman · All rights reserved</string>
+
+    <!-- continue without an account -->
+    <string name="continue_local">Continue without signing in</string>
+    <string name="acct_local">Local mode (no account)</string>
+    <string name="acct_local_sub">Your notes are kept on this device only and are not synced</string>
+    <string name="sign_in_sync">Sign in to turn on sync</string>
+    <string name="sign_in_sync_sub">Sign in with Google to keep your notes in your account and reach them on other devices</string>
+    <string name="delete_local_data_sub">Permanently deletes all your notes from this device</string>
+    <string name="delete_local_data_msg">All your notes will be permanently deleted from this device. This cannot be undone. Export a backup first if you want to keep them.</string>
 </resources>

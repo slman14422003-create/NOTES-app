@@ -94,6 +94,14 @@
             android:paddingEnd="24dp"
             android:text="@string/continue_google" />
 
+        <Button
+            android:id="@+id/btnLocal"
+            style="@style/BtnSecondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/continue_local" />
+
         <ProgressBar
             android:id="@+id/busy"
             style="?android:attr/progressBarStyleHorizontal"

@@ -74,9 +74,12 @@ public final class Motion {
         v.setAlpha(0f);
         v.setTranslationY(Ui.dp(v.getContext(), 22));
         final long delay = Math.min(Math.max(index, 0), 8) * 38L;
+        // while it moves, the card is drawn once into a GPU layer and only that texture is animated
+        v.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         v.postDelayed(() -> {
             v.animate().alpha(1f).setDuration(260).start();
-            spring(v, DynamicAnimation.TRANSLATION_Y, 0f, 260f, 0.78f);
+            SpringAnimation sa = spring(v, DynamicAnimation.TRANSLATION_Y, 0f, 260f, 0.78f);
+            sa.addEndListener((anim, canceled, value, velocity) -> v.setLayerType(View.LAYER_TYPE_NONE, null));
         }, delay);
     }
 

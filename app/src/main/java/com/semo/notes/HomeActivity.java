@@ -30,7 +30,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -43,7 +42,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Main screen: search, quick-access tiles, filters, pinned + recent notes and a quick-capture bar. */
-public class HomeActivity extends AppCompatActivity implements Sync.Listener {
+public class HomeActivity extends SmoothActivity implements Sync.Listener {
     private static final int PAGE = 60;
 
     private Db db;
@@ -61,6 +60,9 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     private final Runnable reloadRun = this::reload;
     private final Runnable hideUndo = () -> findViewById(R.id.undoBar).setVisibility(View.GONE);
     private SwipeRefreshLayout refresh;
+    private android.widget.ScrollView scrollView;
+    private String lastSig = "";      // what is currently drawn: an identical reload is skipped (no flicker, no jump)
+    private String lastViewKey = "";  // filter + query of the last draw: the scroll position is kept only inside the same view
     private Button btnMore;
 
     private LinearLayout gridPinned, gridAll, chipRow;
@@ -97,7 +99,10 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         settings.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         findViewById(R.id.btnA1).setVisibility(View.GONE);
         btnSync = findViewById(R.id.btnRefresh);
-        btnSync.setOnClickListener(v -> Sync.request(this, true));
+        btnSync.setOnClickListener(v -> {
+            if (Prefs.isCloud(this)) Sync.request(this, true);
+            else startActivity(new Intent(this, LoginActivity.class).putExtra(LoginActivity.EXTRA_FROM_APP, true));
+        });
         Ui.press(this, settings);
         Ui.press(this, btnSync);
 
@@ -124,7 +129,8 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         headerLine = findViewById(R.id.headerLine);
         titleView = findViewById(R.id.title);
         final float collapse = Ui.dp(this, 70);
-        ((android.widget.ScrollView) findViewById(R.id.scroll)).setOnScrollChangeListener(
+        scrollView = findViewById(R.id.scroll);
+        scrollView.setOnScrollChangeListener(
                 (v, x, y, ox, oy) -> {
                     float t = Math.min(1f, Math.max(0f, y / collapse));
                     boolean rtl = Lang.isAr(this);
@@ -224,7 +230,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     protected void onStart() {
         super.onStart();
         if (isFinishing()) return; // blocked by the integrity check
-        if (!Prefs.isCloud(this)) { // signed out or the session ended: Google sign-in is the only way in
+        if (!Prefs.hasAccess(this)) { // signed out or the session ended: back to the sign-in screen
             startActivity(new Intent(this, LoginActivity.class)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
             finish();
@@ -428,12 +434,29 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         final int lim = limit;
         dbEx.execute(() -> {
             final List<Note> rows = db.list(f, q, lim + 1);
+            final String sig = signature(f, q, lim, rows);
             ui.post(() -> {
-                if (gen != reloadGen || isFinishing() || isDestroyed()) return;
-                render(rows, rows.size() > lim ? rows.subList(0, lim) : rows, rows.size() > lim);
+                if (gen != reloadGen || !alive()) return;
+                // nothing changed since the last draw (typical on every start / sync tick): keep the screen as it is
+                if (!sig.equals(lastSig)) {
+                    lastSig = sig;
+                    render(rows, rows.size() > lim ? rows.subList(0, lim) : rows, rows.size() > lim);
+                }
                 maybeShowUndo();
             });
         });
+    }
+
+    /** Cheap fingerprint of what the list shows; the minute bucket keeps the relative dates ("5 min ago") fresh. */
+    private static String signature(String f, String q, int lim, List<Note> rows) {
+        StringBuilder sb = new StringBuilder(rows.size() * 24 + 64);
+        sb.append(f).append('|').append(q).append('|').append(lim).append('|')
+                .append(System.currentTimeMillis() / 60_000L);
+        for (Note n : rows) {
+            sb.append('|').append(n.id).append(':').append(n.updatedAt)
+                    .append(n.pinned ? 'p' : '-').append(n.color).append(n.kind);
+        }
+        return sb.toString();
     }
 
     private void maybeShowUndo() {
@@ -451,6 +474,10 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     }
 
     private void render(List<Note> all, List<Note> list, boolean hasMore) {
+        final String viewKey = filter + "|" + query;
+        final boolean sameView = viewKey.equals(lastViewKey);
+        lastViewKey = viewKey;
+        final int keepY = scrollView.getScrollY();
         boolean grouped = Db.F_ALL.equals(filter) && query.isEmpty();
         List<Note> pinned = new ArrayList<>();
         List<Note> others = new ArrayList<>();
@@ -516,6 +543,8 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             empty.setText(sub == 0 ? "" : getString(sub));
             empty.setVisibility(sub == 0 ? View.GONE : View.VISIBLE);
         }
+        // the lists were rebuilt: put the scroll position back so a sync never makes the page jump
+        if (sameView && keepY > 0) scrollView.post(() -> scrollView.scrollTo(0, keepY));
     }
 
     /** Two-column masonry: every card goes to the shorter column. */

@@ -10,6 +10,8 @@ public final class Prefs {
 
     public static final String MODE_NONE = "";
     public static final String MODE_CLOUD = "cloud";
+    /** Continue without any account: notes live only on this device (no Google, no sync). */
+    public static final String MODE_LOCAL = "local";
 
     // The short-lived ID token only lives in memory; the refresh token is stored encrypted (see Vault).
     private static volatile String memIdToken = "";
@@ -28,6 +30,29 @@ public final class Prefs {
 
     public static boolean isCloud(Context c) {
         return MODE_CLOUD.equals(mode(c)) && !uid(c).isEmpty();
+    }
+
+    /** True when the user chose "continue without signing in". */
+    public static boolean isLocal(Context c) {
+        return MODE_LOCAL.equals(mode(c));
+    }
+
+    /** The app may open the notes: either signed in or running in local-only mode. */
+    public static boolean hasAccess(Context c) {
+        return isCloud(c) || isLocal(c);
+    }
+
+    /** Local-only mode: no account, nothing is uploaded. Any previous session data is dropped. */
+    public static void setLocalMode(Context c) {
+        memIdToken = "";
+        memExpiresAt = 0;
+        memRefresh = "";
+        sp(c).edit()
+                .putString("mode", MODE_LOCAL)
+                .remove("uid").remove("email").remove("anon").remove("rt")
+                .remove("refreshToken").remove("idToken").remove("expiresAt")
+                .remove("lastSync").remove("cursor")
+                .apply();
     }
 
     public static void setSession(Context c, String uid, String email, boolean anonymous,

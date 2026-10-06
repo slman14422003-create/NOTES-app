@@ -17,7 +17,6 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,7 +32,7 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class SettingsActivity extends AppCompatActivity implements Sync.Listener {
+public class SettingsActivity extends SmoothActivity implements Sync.Listener {
     private LinearLayout content;
     private ProgressBar loading;
     private Db db;
@@ -95,20 +94,36 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
     // ------------------------------------------------------------------ screen
 
     private void build() {
-        content.removeAllViews();
         final boolean cloud = Prefs.isCloud(this);
-        if (!cloud) {
+        if (!Prefs.hasAccess(this)) {
             startActivity(new Intent(this, LoginActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
             finish();
             return;
         }
+        // the page is rebuilt on every sync tick: keep the scroll position so it never jumps
+        final android.widget.ScrollView sv = findViewById(R.id.settingsScroll);
+        final int keepY = sv == null ? 0 : sv.getScrollY();
+        content.removeAllViews();
 
         // account
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_account)));
-        String accTitle = Prefs.anonymous(this) ? getString(R.string.guest)
-                : (Prefs.email(this).isEmpty() ? getString(R.string.signed_in) : Prefs.email(this));
-        String accSub = Prefs.anonymous(this) ? getString(R.string.guest_sub) : getString(R.string.signed_in);
+        String accTitle, accSub;
+        if (!cloud) {
+            accTitle = getString(R.string.acct_local);
+            accSub = getString(R.string.acct_local_sub);
+        } else {
+            accTitle = Prefs.anonymous(this) ? getString(R.string.guest)
+                    : (Prefs.email(this).isEmpty() ? getString(R.string.signed_in) : Prefs.email(this));
+            accSub = Prefs.anonymous(this) ? getString(R.string.guest_sub) : getString(R.string.signed_in);
+        }
         content.addView(Ui.rowView(this, content, new Row(R.drawable.ic_user, false, accTitle, accSub, false, false), null));
+        if (!cloud) {
+            // local mode: one tap to sign in; the notes already on the device are uploaded to that account
+            content.addView(Ui.rowView(this, content,
+                    new Row(R.drawable.ic_cloud, true, getString(R.string.sign_in_sync), getString(R.string.sign_in_sync_sub),
+                            false, true),
+                    v -> startActivity(new Intent(this, LoginActivity.class).putExtra(LoginActivity.EXTRA_FROM_APP, true))));
+        }
 
         // appearance
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_appearance)));
@@ -130,7 +145,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
         content.addView(secure.view);
 
         Row wipe = new Row(R.drawable.ic_trash_sweep, false, getString(R.string.delete_all_data),
-                getString(R.string.delete_all_data_sub), false, false).tint(Ui.color(this, R.attr.n_bad));
+                getString(cloud ? R.string.delete_all_data_sub : R.string.delete_local_data_sub), false, false).tint(Ui.color(this, R.attr.n_bad));
         content.addView(Ui.rowView(this, content, wipe, v -> confirmDeleteAll()));
 
         // sync
@@ -193,6 +208,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
                     .tint(Ui.color(this, R.attr.n_bad));
             content.addView(Ui.rowView(this, content, out, v -> confirmSignOut()));
         }
+        if (sv != null && keepY > 0) sv.post(() -> sv.scrollTo(0, keepY));
     }
 
     // ------------------------------------------------------------------ appearance
@@ -394,10 +410,18 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
 
     /** Removes the cloud copy (and the Firebase account when possible) and everything stored on this device. */
     private void confirmDeleteAll() {
+        final boolean cloud = Prefs.isCloud(this);
         new Dlg(this)
                 .setTitle(R.string.delete_all_data)
-                .setMessage(R.string.delete_all_data_msg)
+                .setMessage(cloud ? R.string.delete_all_data_msg : R.string.delete_local_data_msg)
                 .setPositiveButton(R.string.delete_all_data, (d, w) -> {
+                    if (!cloud) { // local mode: there is no account and no cloud copy, only this device
+                        db.wipeAll();
+                        Prefs.setOwnerUid(this, "");
+                        Toast.makeText(this, R.string.delete_all_done, Toast.LENGTH_LONG).show();
+                        build();
+                        return;
+                    }
                     loading.setVisibility(View.VISIBLE);
                     final String uid = Prefs.uid(this);
                     io.execute(() -> {

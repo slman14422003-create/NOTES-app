@@ -13,7 +13,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.credentials.Credential;
@@ -33,10 +32,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Launcher. Signed in -> straight to the home screen. Otherwise the only way in is "Continue with Google":
- * the Google ID token is exchanged for a Firebase session, and every account gets its own private notes.
+ * Launcher. Signed in (or already continuing without an account) -> straight to the home screen. Otherwise two ways in:
+ * "Continue with Google" (the Google ID token is exchanged for a Firebase session, every account gets its own
+ * private notes and they sync) or "Continue without signing in" (notes stay on this device only).
  */
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends SmoothActivity {
     /** Opened from inside the app: just close when done instead of starting the home screen. */
     public static final String EXTRA_FROM_APP = "from_app";
     private static final long SPLASH_MS = 700;
@@ -44,7 +44,7 @@ public class LoginActivity extends AppCompatActivity {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
     private TextView error;
-    private Button btnGoogle;
+    private Button btnGoogle, btnLocal;
     private ProgressBar busyBar;
     private boolean fromApp;
     private CancellationSignal cancel;
@@ -66,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
         final long start = SystemClock.uptimeMillis();
         splash.setKeepOnScreenCondition(() -> SystemClock.uptimeMillis() - start < SPLASH_MS);
 
-        if (!fromApp && Prefs.isCloud(this)) {
+        if (!fromApp && Prefs.hasAccess(this)) {
             ui.postDelayed(() -> {
                 if (isFinishing()) return;
                 startActivity(new Intent(this, HomeActivity.class));
@@ -80,10 +80,15 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         error = findViewById(R.id.error);
         btnGoogle = findViewById(R.id.btnGoogle);
+        btnLocal = findViewById(R.id.btnLocal);
         busyBar = findViewById(R.id.busy);
         Ui.tint(this, busyBar);
         Ui.press(this, btnGoogle);
         btnGoogle.setOnClickListener(v -> google());
+        Ui.press(this, btnLocal);
+        btnLocal.setOnClickListener(v -> continueLocal());
+        // opened from Settings / the home screen to turn on sync: the user already is in local mode
+        if (fromApp) btnLocal.setVisibility(View.GONE);
         buildLangRow();
         animateIn();
     }
@@ -132,11 +137,13 @@ public class LoginActivity extends AppCompatActivity {
         Motion.enter(findViewById(R.id.loginTitle), 1);
         Motion.enter(findViewById(R.id.loginSub), 2);
         Motion.enter(btnGoogle, 4);
-        Motion.enter(findViewById(R.id.loginPrivacy), 5);
+        if (btnLocal.getVisibility() == View.VISIBLE) Motion.enter(btnLocal, 5);
+        Motion.enter(findViewById(R.id.loginPrivacy), 6);
     }
 
     private void setBusy(boolean busy) {
         btnGoogle.setEnabled(!busy);
+        btnLocal.setEnabled(!busy);
         busyBar.setVisibility(busy ? View.VISIBLE : View.INVISIBLE);
         if (busy) error.setVisibility(View.GONE);
     }
@@ -205,6 +212,14 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    /** No account: the notes stay on this device only. Signing in later (Settings) uploads them. */
+    private void continueLocal() {
+        if (cancel != null) cancel.cancel();
+        Prefs.setLocalMode(this);
+        startActivity(new Intent(this, HomeActivity.class));
+        finish();
     }
 
     private void signedIn(Firebase.Session s) {

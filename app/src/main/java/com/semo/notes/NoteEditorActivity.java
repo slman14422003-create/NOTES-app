@@ -26,7 +26,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
@@ -36,7 +35,7 @@ import java.util.List;
  * Note editor: title + text or checklist, colour, pin. Everything is saved automatically a moment
  * after you stop typing and when you leave, then pushed to Firebase by {@link Sync}.
  */
-public class NoteEditorActivity extends AppCompatActivity {
+public class NoteEditorActivity extends SmoothActivity {
     public static final String EXTRA_ID = "id";
     public static final String EXTRA_KIND = "kind";
     public static final String EXTRA_INIT = "init";

@@ -13,7 +13,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -27,7 +26,7 @@ import java.util.concurrent.Executors;
  * "About the app": app info, the short terms/privacy summary and updates. Updates are download + install only;
  * the source repository is never shown.
  */
-public class AboutActivity extends AppCompatActivity {
+public class AboutActivity extends SmoothActivity {
     public static final String EXTRA_AUTOSTART = "autostart";
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
