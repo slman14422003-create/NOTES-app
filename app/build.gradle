@@ -114,7 +114,7 @@ def secretsValues = [
         apiKey     : (System.getenv('FIREBASE_API_KEY') ?: 'AIzaSyCvXS6nZ2md4xRVyUDtPNOMgL5ShUCADXI').trim(),
         projectId  : (System.getenv('FIREBASE_PROJECT_ID') ?: 'semo-7770a').trim(),
         webClientId: (System.getenv('WEB_CLIENT_ID') ?: '').trim(),
-        updateRepo : (System.getenv('GITHUB_REPOSITORY') ?: '').trim(),
+        updateRepo : (System.getenv('UPDATE_REPO') ?: System.getenv('GITHUB_REPOSITORY') ?: '').trim(),
         certSha256 : (System.getenv('EXPECTED_CERT_SHA256') ?: '').trim().replace(':', '')
 ]
 def secretsDir = new File(layout.buildDirectory.get().asFile, 'generated/secrets/java')

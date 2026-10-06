@@ -163,6 +163,8 @@ jobs:
         env:
           VERSION_CODE_OVERRIDE: ${{ steps.meta.outputs.version_code }}
           WEB_CLIENT_ID: ${{ secrets.WEB_CLIENT_ID }}
+          # public repository that only holds the releases (APK + notes); empty = this repository
+          UPDATE_REPO: ${{ vars.UPDATES_REPO }}
         run: |
           if [ "$BUILD_TYPE" = "release" ]; then
             gradle assembleRelease --stacktrace --warning-mode all
@@ -239,7 +241,10 @@ jobs:
     permissions:
       contents: write
     env:
-      GH_TOKEN: ${{ github.token }}
+      # With a private source repository the releases go to a separate PUBLIC repository (variable UPDATES_REPO,
+      # secret UPDATES_TOKEN) so the app can read them without logging in. Empty = publish in this repository.
+      REL_REPO: ${{ vars.UPDATES_REPO || github.repository }}
+      GH_TOKEN: ${{ vars.UPDATES_REPO && secrets.UPDATES_TOKEN || github.token }}
       TAG: ${{ needs.build.outputs.tag }}
       PRE: ${{ needs.build.outputs.prerelease }}
     steps:
@@ -250,17 +255,19 @@ jobs:
 
       - name: Create or update release
         run: |
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          if gh release view "$TAG" --repo "$REL_REPO" >/dev/null 2>&1; then
             # The release already exists (e.g. created from the app): attach the APK and make sure
             # the versionCode footer used by the in-app updater is present.
-            gh release upload "$TAG" dist/*.apk --clobber --repo "$GITHUB_REPOSITORY"
-            BODY="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body -q .body)"
+            gh release upload "$TAG" dist/*.apk --clobber --repo "$REL_REPO"
+            BODY="$(gh release view "$TAG" --repo "$REL_REPO" --json body -q .body)"
             if ! printf '%s' "$BODY" | grep -q 'versionCode:'; then
               { printf '%s\n\n' "$BODY"; cat dist/notes-footer.md; } > dist/notes-final.md
-              gh release edit "$TAG" --notes-file dist/notes-final.md --repo "$GITHUB_REPOSITORY"
+              gh release edit "$TAG" --notes-file dist/notes-final.md --repo "$REL_REPO"
             fi
           else
-            ARGS=(--repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes --notes-file dist/notes-footer.md)
+            ARGS=(--repo "$REL_REPO" --title "$TAG" --notes-file dist/notes-footer.md)
+            # the commit exists only in the source repository: target/auto-notes are used only when releasing there
+            if [ "$REL_REPO" = "$GITHUB_REPOSITORY" ]; then ARGS+=(--target "$GITHUB_SHA" --generate-notes); fi
             [ "$PRE" = "true" ] && ARGS+=(--prerelease)
             gh release create "$TAG" dist/*.apk "${ARGS[@]}"
           fi
