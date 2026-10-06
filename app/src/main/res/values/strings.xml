@@ -118,10 +118,10 @@
     <string name="upd_version_section">الإصدار</string>
     <string name="upd_current">المثبّت حاليًا</string>
     <string name="upd_installed">%1$s (%2$s)</string>
-    <string name="upd_latest">الأحدث على GitHub</string>
+    <string name="upd_latest">أحدث إصدار</string>
     <string name="upd_checking">جارٍ التحقق…</string>
     <string name="upd_up_to_date">أنت تستخدم أحدث إصدار</string>
-    <string name="upd_none_found">لا يوجد في المستودع إصدار فيه ملف APK بعد</string>
+    <string name="upd_none_found">لا يتوفر تحديث حاليًا</string>
     <string name="upd_available">يتوفر تحديث جديد</string>
     <string name="upd_prompt_msg">الإصدار %1$s جاهز (المثبّت: %2$s). هل تريد تنزيله وتثبيته الآن؟</string>
     <string name="upd_update_now">تحديث الآن</string>
@@ -130,7 +130,6 @@
     <string name="upd_install">تثبيت التحديث</string>
     <string name="upd_downloading_start">جارٍ التنزيل…</string>
     <string name="upd_downloading">جارٍ التنزيل %1$d%% — %2$s / %3$s</string>
-    <string name="upd_view_release">عرض الإصدار على GitHub</string>
     <string name="upd_notes">ما الجديد</string>
     <string name="upd_skip_version">تجاهل هذا الإصدار</string>
     <string name="upd_skipped">سيتم تجاهل %1$s</string>
@@ -141,13 +140,13 @@
     <string name="upd_source">مستودع التحديثات</string>
     <string name="upd_source_hint">owner/repo</string>
     <string name="upd_source_bad">اكتب المستودع بالشكل owner/repo</string>
-    <string name="upd_no_source">لم يُحدَّد مستودع التحديثات. اضغط «مستودع التحديثات» واكتبه بالشكل owner/repo</string>
+    <string name="upd_no_source">التحديثات غير مفعّلة في هذه النسخة</string>
     <string name="upd_auto">التحقق التلقائي</string>
     <string name="upd_auto_sub">يتحقق بصمت عند فتح التطبيق (كل بضع ساعات) ويسألك قبل التنزيل</string>
     <string name="upd_pre">تضمين النسخ التجريبية</string>
     <string name="upd_allow_install">اسمح لهذا التطبيق بتثبيت التطبيقات ثم ارجع واضغط «تثبيت التحديث»</string>
-    <string name="upd_repo_404">لم يُعثر على المستودع %s أو أنه خاص. التحديث من داخل التطبيق يعمل مع المستودعات العامة فقط</string>
-    <string name="upd_rate_limit">تجاوزت حدّ طلبات GitHub مؤقتًا، أعد المحاولة بعد قليل</string>
+    <string name="upd_repo_404">تعذّر الوصول إلى التحديثات حاليًا، حاول لاحقًا</string>
+    <string name="upd_rate_limit">تعذّر التحقق الآن، أعد المحاولة بعد قليل</string>
     <string name="upd_error">تعذّر التحقق: %s</string>
     <string name="upd_size_bad">الملف المنزَّل ناقص أو تالف، أعد المحاولة</string>
     <string name="upd_hash_bad">بصمة الملف لا تطابق المنشورة في الإصدار، لم يُثبَّت التحديث</string>
@@ -184,4 +183,22 @@
     <string name="th_berry">توتي</string>
     <string name="th_yellow">أصفر</string>
     <string name="status_synced_now">تمت المزامنة الآن</string>
+
+    <!-- first launch: terms + privacy -->
+    <string name="terms_title">مرحبًا بك في ملاحظاتي</string>
+    <string name="terms_intro">قبل أن تبدأ، هذه أهم نقاط الشروط والخصوصية باختصار:</string>
+    <string name="terms_p1">ملاحظاتك لك وحدك: تُحفظ على جهازك وتُزامَن مع حسابك على Firebase، ولا يراها أحد غيرك.</string>
+    <string name="terms_p2">حساب Google يُستخدم لتسجيل الدخول وتمييز ملاحظاتك فقط.</string>
+    <string name="terms_p3">لا نبيع بياناتك ولا نشاركها مع أي جهة.</string>
+    <string name="terms_p4">أنت المسؤول عن محتوى ملاحظاتك، ويمكنك حذفها أو حذف كل بياناتك في أي وقت من الإعدادات.</string>
+    <string name="terms_foot">بالضغط على «أوافق» فأنت توافق على الشروط وسياسة الخصوصية.</string>
+    <string name="terms_accept">أوافق وأتابع</string>
+    <string name="terms_exit">خروج من التطبيق</string>
+    <string name="terms_link">الشروط والخصوصية</string>
+    <string name="terms_link_sub">ملخّص مختصر</string>
+    <string name="about_title">حول التطبيق</string>
+    <string name="about_app_section">معلومات التطبيق</string>
+    <string name="about_version_row">الإصدار</string>
+    <string name="about_build_row">رقم البناء</string>
+    <string name="about_updates_section">التحديثات</string>
 </resources>

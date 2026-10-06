@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/n_bg"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="12dp"
+            android:paddingEnd="24dp"
+            android:paddingStart="24dp"
+            android:paddingTop="20dp">
+
+            <LinearLayout
+                android:id="@+id/langRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal" />
+
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_mark" />
+
+            <TextView
+                android:id="@+id/termsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/terms_title"
+                android:textColor="?attr/n_text_primary"
+                android:textSize="26sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:lineSpacingMultiplier="1.2"
+                android:text="@string/terms_intro"
+                android:textColor="?attr/n_text_secondary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/termsP1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_note"
+                android:drawablePadding="12dp"
+                android:drawableStart="@drawable/ic_check_circle"
+                android:drawableTint="?attr/n_accent_text"
+                android:gravity="center_vertical"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="14dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="14dp"
+                android:text="@string/terms_p1"
+                android:textAlignment="viewStart"
+                android:textColor="?attr/n_text_primary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/termsP2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_note"
+                android:drawablePadding="12dp"
+                android:drawableStart="@drawable/ic_check_circle"
+                android:drawableTint="?attr/n_accent_text"
+                android:gravity="center_vertical"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="14dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="14dp"
+                android:text="@string/terms_p2"
+                android:textAlignment="viewStart"
+                android:textColor="?attr/n_text_primary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/termsP3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_note"
+                android:drawablePadding="12dp"
+                android:drawableStart="@drawable/ic_check_circle"
+                android:drawableTint="?attr/n_accent_text"
+                android:gravity="center_vertical"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="14dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="14dp"
+                android:text="@string/terms_p3"
+                android:textAlignment="viewStart"
+                android:textColor="?attr/n_text_primary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/termsP4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_note"
+                android:drawablePadding="12dp"
+                android:drawableStart="@drawable/ic_check_circle"
+                android:drawableTint="?attr/n_accent_text"
+                android:gravity="center_vertical"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="14dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="14dp"
+                android:text="@string/terms_p4"
+                android:textAlignment="viewStart"
+                android:textColor="?attr/n_text_primary"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="20dp"
+        android:paddingEnd="24dp"
+        android:paddingStart="24dp"
+        android:paddingTop="8dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.2"
+            android:text="@string/terms_foot"
+            android:textColor="?attr/n_text_hint"
+            android:textSize="12.5sp" />
+
+        <Button
+            android:id="@+id/btnAccept"
+            style="@style/BtnPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/terms_accept" />
+
+        <Button
+            android:id="@+id/btnExit"
+            style="@style/BtnSecondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/terms_exit" />
+    </LinearLayout>
+</LinearLayout>

@@ -118,10 +118,10 @@
     <string name="upd_version_section">Version</string>
     <string name="upd_current">Installed</string>
     <string name="upd_installed">%1$s (%2$s)</string>
-    <string name="upd_latest">Latest on GitHub</string>
+    <string name="upd_latest">Latest version</string>
     <string name="upd_checking">Checking…</string>
     <string name="upd_up_to_date">You are on the latest version</string>
-    <string name="upd_none_found">The repository has no release with an APK yet</string>
+    <string name="upd_none_found">No update is available right now</string>
     <string name="upd_available">A new update is available</string>
     <string name="upd_prompt_msg">Version %1$s is ready (installed: %2$s). Download and install it now?</string>
     <string name="upd_update_now">Update now</string>
@@ -130,7 +130,6 @@
     <string name="upd_install">Install update</string>
     <string name="upd_downloading_start">Downloading…</string>
     <string name="upd_downloading">Downloading %1$d%% — %2$s / %3$s</string>
-    <string name="upd_view_release">View release on GitHub</string>
     <string name="upd_notes">What\'s new</string>
     <string name="upd_skip_version">Skip this version</string>
     <string name="upd_skipped">%1$s will be skipped</string>
@@ -141,13 +140,13 @@
     <string name="upd_source">Update repository</string>
     <string name="upd_source_hint">owner/repo</string>
     <string name="upd_source_bad">Enter the repository as owner/repo</string>
-    <string name="upd_no_source">No update repository is set. Tap “Update repository” and enter it as owner/repo</string>
+    <string name="upd_no_source">Updates are not enabled in this build</string>
     <string name="upd_auto">Automatic check</string>
     <string name="upd_auto_sub">Checks quietly when the app opens (every few hours) and asks before downloading</string>
     <string name="upd_pre">Include pre-releases</string>
     <string name="upd_allow_install">Allow this app to install apps, then come back and tap “Install update”</string>
-    <string name="upd_repo_404">Repository %s was not found or is private. In-app updates work with public repositories only</string>
-    <string name="upd_rate_limit">GitHub request limit reached for now, try again shortly</string>
+    <string name="upd_repo_404">Updates cannot be reached right now, try again later</string>
+    <string name="upd_rate_limit">Could not check right now, try again shortly</string>
     <string name="upd_error">Could not check: %s</string>
     <string name="upd_size_bad">The downloaded file is incomplete or corrupt, try again</string>
     <string name="upd_hash_bad">The file hash does not match the one published in the release, update not installed</string>
@@ -184,4 +183,22 @@
     <string name="th_berry">Berry</string>
     <string name="th_yellow">Yellow</string>
     <string name="status_synced_now">Synced just now</string>
+
+    <!-- first launch: terms + privacy -->
+    <string name="terms_title">Welcome to My Notes</string>
+    <string name="terms_intro">Before you start, here is a short summary of the terms and privacy:</string>
+    <string name="terms_p1">Your notes are yours alone: they are kept on your device and synced to your own Firebase account, and nobody else can see them.</string>
+    <string name="terms_p2">Your Google account is only used to sign you in and tell your notes apart.</string>
+    <string name="terms_p3">We do not sell your data or share it with anyone.</string>
+    <string name="terms_p4">You are responsible for what you write, and you can delete your notes or all your data at any time from Settings.</string>
+    <string name="terms_foot">By tapping “I agree” you accept the terms and the privacy policy.</string>
+    <string name="terms_accept">I agree and continue</string>
+    <string name="terms_exit">Exit the app</string>
+    <string name="terms_link">Terms and privacy</string>
+    <string name="terms_link_sub">Short summary</string>
+    <string name="about_title">About the app</string>
+    <string name="about_app_section">App info</string>
+    <string name="about_version_row">Version</string>
+    <string name="about_build_row">Build number</string>
+    <string name="about_updates_section">Updates</string>
 </resources>

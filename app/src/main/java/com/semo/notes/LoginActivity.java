@@ -57,6 +57,12 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         if (Integrity.enforce(this)) return;
         fromApp = getIntent().getBooleanExtra(EXTRA_FROM_APP, false);
+        // first launch: terms + privacy must be accepted before anything else opens
+        if (!fromApp && !Prefs.termsAccepted(this)) {
+            startActivity(new Intent(this, TermsActivity.class));
+            finish();
+            return;
+        }
         final long start = SystemClock.uptimeMillis();
         splash.setKeepOnScreenCondition(() -> SystemClock.uptimeMillis() - start < SPLASH_MS);
 

@@ -169,21 +169,35 @@ public class Dlg extends AlertDialog.Builder {
         if (order.isEmpty()) return;
 
         // Buttons are stacked full-width: the main action on top, then the secondary ones.
-        ViewParent parent = order.get(0).getParent();
-        if (parent instanceof LinearLayout) {
-            LinearLayout bar = (LinearLayout) parent;
-            bar.setOrientation(LinearLayout.VERTICAL);
-            View spacer = bar.findViewById(androidx.appcompat.R.id.spacer);
-            if (spacer != null) spacer.setVisibility(View.GONE);
-            for (Button b : order) {
-                bar.removeView(b);
-                bar.addView(b);
+        // The framework button bar (ButtonBarLayout) re-orders and re-measures its children on its own, which
+        // clipped the buttons when we moved them around. So it is hidden and replaced by a plain vertical column
+        // whose buttons forward their clicks to the real ones (the listener + dismiss still run as usual).
+        View panel = d.findViewById(androidx.appcompat.R.id.buttonPanel);
+        ViewParent host = panel == null ? null : panel.getParent();
+        if (host instanceof LinearLayout) {
+            LinearLayout col = new LinearLayout(c);
+            col.setOrientation(LinearLayout.VERTICAL);
+            col.setPaddingRelative(Ui.dp(c, 18), Ui.dp(c, 6), Ui.dp(c, 18), Ui.dp(c, 16));
+            for (final Button real : order) {
+                Button b = new Button(c);
+                b.setText(real.getText());
+                b.setEnabled(real.isEnabled());
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                lp.setMargins(0, Ui.dp(c, 4), 0, Ui.dp(c, 4));
+                col.addView(b, lp);
+                pill(c, b, real == pos ? (destructive(c, real.getText()) ? 2 : 0) : 1);
+                b.setOnClickListener(v -> real.performClick());
             }
-            bar.setPaddingRelative(Ui.dp(c, 18), Ui.dp(c, 6), Ui.dp(c, 18), Ui.dp(c, 16));
+            panel.setVisibility(View.GONE);
+            LinearLayout parentCol = (LinearLayout) host;
+            parentCol.addView(col, parentCol.indexOfChild(panel) + 1,
+                    new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            return;
         }
+        // unexpected dialog layout: keep the stock bar, just style the buttons
         for (Button b : order) {
-            if (b == pos) pill(c, b, destructive(c, b.getText()) ? 2 : 0);
-            else pill(c, b, 1);
+            pill(c, b, b == pos ? (destructive(c, b.getText()) ? 2 : 0) : 1);
         }
     }
 

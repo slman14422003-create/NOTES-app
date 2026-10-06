@@ -194,6 +194,15 @@ public final class Prefs {
         sp(c).edit().putString("updRepo", v == null ? "" : v.trim()).apply();
     }
 
+    /** True once the user accepted the terms and privacy summary on first launch. */
+    public static boolean termsAccepted(Context c) {
+        return sp(c).getBoolean("terms_ok", false);
+    }
+
+    public static void setTermsAccepted(Context c, boolean v) {
+        sp(c).edit().putBoolean("terms_ok", v).apply();
+    }
+
     public static boolean autoUpdate(Context c) {
         return sp(c).getBoolean("updAuto", true);
     }

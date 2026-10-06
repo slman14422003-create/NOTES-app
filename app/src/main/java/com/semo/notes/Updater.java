@@ -467,7 +467,7 @@ public final class Updater {
                 .setTitle(R.string.upd_available)
                 .setMessage(msg)
                 .setPositiveButton(R.string.upd_update_now, (d, w) ->
-                        a.startActivity(new Intent(a, UpdateActivity.class).putExtra(UpdateActivity.EXTRA_AUTOSTART, true)))
+                        a.startActivity(new Intent(a, AboutActivity.class).putExtra(AboutActivity.EXTRA_AUTOSTART, true)))
                 .setNeutralButton(R.string.upd_skip_version, (d, w) -> Prefs.setSkippedVersion(a, in.tag))
                 .setNegativeButton(R.string.upd_later, null)
                 .show();
