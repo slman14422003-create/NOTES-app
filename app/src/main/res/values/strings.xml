@@ -114,10 +114,10 @@
     <string name="sec_updates">التحديثات</string>
     <string name="upd_title">تحديث التطبيق</string>
     <string name="upd_check">التحقق من التحديثات</string>
-    <string name="upd_check_sub">الإصدار الحالي %1$s (%2$d)</string>
+    <string name="upd_check_sub">الإصدار الحالي %1$s (%2$s)</string>
     <string name="upd_version_section">الإصدار</string>
     <string name="upd_current">المثبّت حاليًا</string>
-    <string name="upd_installed">%1$s (%2$d)</string>
+    <string name="upd_installed">%1$s (%2$s)</string>
     <string name="upd_latest">الأحدث على GitHub</string>
     <string name="upd_checking">جارٍ التحقق…</string>
     <string name="upd_up_to_date">أنت تستخدم أحدث إصدار</string>

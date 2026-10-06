@@ -229,7 +229,7 @@ public class NoteEditorActivity extends AppCompatActivity {
         for (int i = 0; i < Palette.DOT.length; i++) {
             final int idx = i;
             FrameLayout cell = new FrameLayout(this);
-            cell.setLayoutParams(new LinearLayout.LayoutParams(0, Ui.dp(this, 44), 1f));
+            cell.setLayoutParams(new LinearLayout.LayoutParams(0, Ui.dp(this, 52), 1f));
             View d = new View(this);
             GradientDrawable g = new GradientDrawable();
             g.setShape(GradientDrawable.OVAL);
@@ -238,14 +238,14 @@ public class NoteEditorActivity extends AppCompatActivity {
             if (sel) g.setStroke(Ui.dp(this, 3), Ui.color(this, R.attr.n_text_primary));
             else g.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke));
             d.setBackground(g);
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(Ui.dp(this, 30), Ui.dp(this, 30), Gravity.CENTER);
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(Ui.dp(this, 28), Ui.dp(this, 28), Gravity.CENTER);
             d.setLayoutParams(lp);
             d.setContentDescription(getString(R.string.color));
             if (sel) {
                 d.setScaleX(0.8f);
                 d.setScaleY(0.8f);
-                Motion.spring(d, androidx.dynamicanimation.animation.DynamicAnimation.SCALE_X, 1.12f, 420f, 0.5f);
-                Motion.spring(d, androidx.dynamicanimation.animation.DynamicAnimation.SCALE_Y, 1.12f, 420f, 0.5f);
+                Motion.spring(d, androidx.dynamicanimation.animation.DynamicAnimation.SCALE_X, 1.15f, 420f, 0.5f);
+                Motion.spring(d, androidx.dynamicanimation.animation.DynamicAnimation.SCALE_Y, 1.15f, 420f, 0.5f);
             }
             Ui.press(this, cell);
             cell.setOnClickListener(v -> {

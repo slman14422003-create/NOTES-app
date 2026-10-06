@@ -99,25 +99,17 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="14dp"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
         android:paddingTop="6dp"
-        android:paddingEnd="14dp"
-        android:paddingBottom="12dp">
-
-        <LinearLayout
-            android:id="@+id/palette"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="horizontal" />
+        android:paddingEnd="16dp"
+        android:paddingBottom="14dp">
 
         <TextView
             android:id="@+id/btnKind"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_gravity="start"
             android:background="@drawable/bg_pill_neutral"
             android:drawablePadding="8dp"
             android:drawableStart="@drawable/ic_checklist"
@@ -128,5 +120,18 @@
             android:paddingEnd="18dp"
             android:textColor="?attr/n_text_primary"
             android:textSize="14sp" />
+
+        <!-- colour picker: seven dots spread evenly inside one rounded capsule -->
+        <LinearLayout
+            android:id="@+id/palette"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_pill_neutral"
+            android:gravity="center_vertical"
+            android:minHeight="56dp"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp" />
     </LinearLayout>
 </LinearLayout>
