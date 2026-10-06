@@ -11,8 +11,11 @@ public final class Cfg {
     private Cfg() {
     }
 
-    /** Fallback "owner/repo" for in-app updates when the APK was not built by GitHub Actions. */
-    public static final String UPDATE_REPO_FALLBACK = "";
+    /**
+     * Public repository that holds the releases (APK + notes). The source repository is private and the app does
+     * not sign in to GitHub, so updates are always read from here, whatever the CI variables say.
+     */
+    public static final String UPDATE_REPO_FALLBACK = "slman14422003-create/notes-releases";
 
     public static String apiKey() {
         return Secrets.apiKey();

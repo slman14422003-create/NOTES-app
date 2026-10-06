@@ -81,10 +81,11 @@ public final class Updater {
 
     // ------------------------------------------------------------------ source + installed version
 
-    /** "owner/repo": the user's choice, else the repository this APK was built in. */
+    /** "owner/repo": the user's choice, else the public releases repository, else the one this APK was built with. */
     public static String repo(Context c) {
         String v = Prefs.updateRepo(c);
         if (validSlug(v)) return v;
+        if (validSlug(Cfg.UPDATE_REPO_FALLBACK)) return Cfg.UPDATE_REPO_FALLBACK;
         v = Secrets.updateRepo().trim();
         if (validSlug(v)) return v;
         return Cfg.UPDATE_REPO_FALLBACK;
