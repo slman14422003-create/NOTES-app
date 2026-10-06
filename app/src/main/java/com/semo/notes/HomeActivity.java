@@ -51,6 +51,11 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     private String query = "";
     private int limit = PAGE;
     private int reloadGen;
+    private final java.util.Set<String> shown = new java.util.HashSet<>();
+    private int scrollAcc;
+    private View overlay, headerLine;
+    private TextView titleView;
+    private boolean composerHidden;
     private final ExecutorService dbEx = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final Runnable reloadRun = this::reload;
@@ -115,6 +120,33 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             reload();
         });
 
+        overlay = findViewById(R.id.overlay);
+        headerLine = findViewById(R.id.headerLine);
+        titleView = findViewById(R.id.title);
+        final float collapse = Ui.dp(this, 70);
+        ((android.widget.ScrollView) findViewById(R.id.scroll)).setOnScrollChangeListener(
+                (v, x, y, ox, oy) -> {
+                    float t = Math.min(1f, Math.max(0f, y / collapse));
+                    boolean rtl = Lang.isAr(this);
+                    titleView.setPivotX(rtl ? titleView.getWidth() : 0f);
+                    titleView.setPivotY(titleView.getHeight() / 2f);
+                    float s = 1f - 0.22f * t;
+                    titleView.setScaleX(s);
+                    titleView.setScaleY(s);
+                    subtitle.setAlpha(1f - t);
+                    headerLine.setAlpha(t);
+                    int dy = y - oy;
+                    scrollAcc = (dy > 0) == (scrollAcc > 0) ? scrollAcc + dy : dy; // direction change resets
+                    boolean typing = quickText.hasFocus();
+                    if (!typing && scrollAcc > Ui.dp(this, 24) && y > Ui.dp(this, 90) && !composerHidden) {
+                        composerHidden = true;
+                        Motion.slideY(overlay, true);
+                    } else if ((scrollAcc < -Ui.dp(this, 12) || y < Ui.dp(this, 40) || typing) && composerHidden) {
+                        composerHidden = false;
+                        Motion.slideY(overlay, false);
+                    }
+                });
+
         gridPinned = findViewById(R.id.gridPinned);
         gridAll = findViewById(R.id.gridAll);
         chipRow = findViewById(R.id.chipRow);
@@ -139,6 +171,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             public void afterTextChanged(Editable s) {
                 query = s.toString().trim();
                 limit = PAGE;
+                shown.clear();
                 ui.removeCallbacks(reloadRun);
                 ui.postDelayed(reloadRun, 160); // wait for a pause in typing before querying
             }
@@ -240,24 +273,33 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         int st = Sync.state();
         boolean running = cloud && st == Sync.RUNNING;
         loading.setVisibility(running ? View.VISIBLE : View.INVISIBLE);
-        if (running) {
+        if (running && Motion.enabled(this)) {
             if (spin == null) {
-                spin = ObjectAnimator.ofFloat(btnSync, View.ROTATION, 0f, 360f);
-                spin.setDuration(1000);
+                spin = ObjectAnimator.ofPropertyValuesHolder(btnSync,
+                        android.animation.PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.35f),
+                        android.animation.PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 0.9f),
+                        android.animation.PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 0.9f));
+                spin.setDuration(700);
                 spin.setRepeatCount(ObjectAnimator.INFINITE);
-                spin.setInterpolator(new LinearInterpolator());
+                spin.setRepeatMode(ObjectAnimator.REVERSE);
+                spin.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
             }
             if (!spin.isStarted()) spin.start();
         } else if (spin != null) {
             spin.cancel();
-            btnSync.setRotation(0f);
+            spin = null;
+            btnSync.setAlpha(1f);
+            btnSync.setScaleX(1f);
+            btnSync.setScaleY(1f);
         }
         String text;
         if (!cloud) text = getString(R.string.status_local);
         else if (running) text = getString(R.string.status_syncing);
         else if (st == Sync.ERROR) text = Firebase.friendly(this, Sync.lastError());
         else if (Prefs.lastSync(this) > 0) {
-            text = getString(R.string.status_synced, DateUtils.getRelativeTimeSpanString(Prefs.lastSync(this),
+            long ago = System.currentTimeMillis() - Prefs.lastSync(this);
+            text = ago < 60_000L ? getString(R.string.status_synced_now)
+                    : getString(R.string.status_synced, DateUtils.getRelativeTimeSpanString(Prefs.lastSync(this),
                     System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL));
         } else text = getString(R.string.status_waiting);
         subtitle.setText(text);
@@ -272,10 +314,6 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         addTile(row, R.drawable.ic_add, R.string.tile_note, v -> openNew(false, ""));
         addTile(row, R.drawable.ic_checklist, R.string.tile_list, v -> openNew(true, ""));
         addTile(row, R.drawable.ic_clipboard, R.string.tile_paste, v -> pasteNote());
-        addTile(row, R.drawable.ic_search, R.string.tile_search, v -> {
-            search.requestFocus();
-            ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(search, 0);
-        });
     }
 
     private void addTile(LinearLayout row, int icon, int label, View.OnClickListener l) {
@@ -285,11 +323,10 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         t.setPadding(Ui.dp(this, 6), Ui.dp(this, 14), Ui.dp(this, 6), Ui.dp(this, 12));
         GradientDrawable fill = new GradientDrawable();
         fill.setColor(Ui.color(this, R.attr.n_surface));
-        fill.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke_soft));
-        fill.setCornerRadius(Ui.dp(this, 24));
+        fill.setCornerRadius(Ui.dp(this, 28));
         GradientDrawable mask = new GradientDrawable();
         mask.setColor(0xFFFFFFFF);
-        mask.setCornerRadius(Ui.dp(this, 24));
+        mask.setCornerRadius(Ui.dp(this, 28));
         t.setBackground(new RippleDrawable(ColorStateList.valueOf(Ui.color(this, R.attr.n_ripple)), fill, mask));
 
         ImageView iv = new ImageView(this);
@@ -298,7 +335,7 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
         iv.setBackgroundResource(R.drawable.bg_circle_accent);
         int p = Ui.dp(this, 10);
         iv.setPadding(p, p, p, p);
-        t.addView(iv, new LinearLayout.LayoutParams(Ui.dp(this, 44), Ui.dp(this, 44)));
+        t.addView(iv, new LinearLayout.LayoutParams(Ui.dp(this, 46), Ui.dp(this, 46)));
 
         TextView tv = new TextView(this);
         tv.setText(label);
@@ -377,7 +414,8 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     private void setFilter(String f) {
         filter = f;
         limit = PAGE;
-        for (int i = 0; i < chips.size(); i++) Ui.setChip(this, chips.get(i), FILTERS[i].equals(filter));
+        shown.clear(); // a new list: let its cards animate in
+        for (int i = 0; i < chips.size(); i++) Ui.animateChip(this, chips.get(i), FILTERS[i].equals(filter));
         reload();
     }
 
@@ -465,6 +503,15 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
                 sub = 0;
             }
             emptyIcon.setImageResource(icon);
+            if (Motion.enabled(this) && emptyIcon.getTag() == null) {
+                emptyIcon.setTag("bob");
+                ObjectAnimator bob = ObjectAnimator.ofFloat(emptyIcon, View.TRANSLATION_Y, 0f, -Ui.dp(this, 8));
+                bob.setDuration(1800);
+                bob.setRepeatCount(ObjectAnimator.INFINITE);
+                bob.setRepeatMode(ObjectAnimator.REVERSE);
+                bob.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
+                bob.start();
+            }
             emptyTitle.setText(ttl);
             empty.setText(sub == 0 ? "" : getString(sub));
             empty.setVisibility(sub == 0 ? View.GONE : View.VISIBLE);
@@ -488,7 +535,10 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
             int c = h[0] <= h[1] ? 0 : 1;
             View card = card(n);
             col[c].addView(card);
-            if (idx < 10) Ui.enter(card, idx);
+            if (!shown.contains(n.id)) {
+                shown.add(n.id);
+                if (idx < 10) Ui.enter(card, idx); // cards that were already on screen do not re-animate on refresh
+            }
             idx++;
             h[c] += estimate(n);
         }
@@ -511,13 +561,13 @@ public class HomeActivity extends AppCompatActivity implements Sync.Listener {
     private View card(final Note n) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        int pad = Ui.dp(this, 16);
-        card.setPadding(pad, pad, pad, Ui.dp(this, 12));
-        float r = Ui.dp(this, 24);
+        int pad = Ui.dp(this, 18);
+        card.setPadding(pad, pad, pad, Ui.dp(this, 14));
+        float r = Ui.dp(this, 28);
         GradientDrawable fill = new GradientDrawable();
         fill.setColor(Palette.card(this, n.color));
         fill.setCornerRadius(r);
-        fill.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke_soft));
+        if (n.color == 0) fill.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke_soft));
         GradientDrawable mask = new GradientDrawable();
         mask.setColor(0xFFFFFFFF);
         mask.setCornerRadius(r);

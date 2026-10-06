@@ -123,7 +123,7 @@ public class UpdateActivity extends AppCompatActivity {
 
         content.addView(Ui.sectionTitle(this, getString(R.string.upd_version_section)));
         add(new Row(R.drawable.ic_info, false, getString(R.string.upd_current),
-                getString(R.string.upd_installed, Updater.installedName(this), Updater.installedCode(this)),
+                getString(R.string.upd_installed, Ui.ltr(Updater.installedName(this)), Ui.ltr(Updater.installedCode(this))),
                 false, false), null);
 
         if (!checked) {

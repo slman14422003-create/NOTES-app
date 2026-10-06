@@ -460,7 +460,7 @@ public final class Updater {
     }
 
     private static void prompt(final Activity a, final Info in) {
-        String msg = a.getString(R.string.upd_prompt_msg, in.tag, installedName(a));
+        String msg = a.getString(R.string.upd_prompt_msg, Ui.ltr(in.tag), Ui.ltr(installedName(a)));
         String notes = cleanNotes(in.body);
         if (!notes.isEmpty()) msg = msg + "\n\n" + notes;
         new Dlg(a)

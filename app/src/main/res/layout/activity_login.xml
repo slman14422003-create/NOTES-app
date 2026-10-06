@@ -27,22 +27,36 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <ImageView
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:importantForAccessibility="no"
-            android:src="@drawable/ic_mark" />
+        <FrameLayout
+            android:id="@+id/logoBox"
+            android:layout_width="220dp"
+            android:layout_height="190dp">
+
+            <View
+                android:id="@+id/glow"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <ImageView
+                android:layout_width="84dp"
+                android:layout_height="84dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_mark" />
+        </FrameLayout>
 
         <TextView
+            android:id="@+id/loginTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
+            android:layout_marginTop="4dp"
             android:fontFamily="serif"
             android:text="@string/app_name"
             android:textColor="?attr/n_text_primary"
             android:textSize="38sp" />
 
         <TextView
+            android:id="@+id/loginSub"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -90,6 +104,7 @@
             android:visibility="invisible" />
 
         <TextView
+            android:id="@+id/loginPrivacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"

@@ -20,7 +20,6 @@
     <string name="tile_note">Note</string>
     <string name="tile_list">Checklist</string>
     <string name="tile_paste">Paste</string>
-    <string name="tile_search">Search</string>
     <string name="f_all">All</string>
     <string name="f_pinned">Pinned</string>
     <string name="f_lists">Lists</string>
@@ -184,4 +183,5 @@
     <string name="th_green">Green</string>
     <string name="th_berry">Berry</string>
     <string name="th_yellow">Yellow</string>
+    <string name="status_synced_now">Synced just now</string>
 </resources>

@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android"
-    android:interpolator="@android:interpolator/accelerate_cubic">
-    <alpha android:duration="180" android:fromAlpha="1" android:toAlpha="0" />
-    <translate android:duration="220" android:fromYDelta="0" android:toYDelta="4%p" />
+    android:interpolator="@interpolator/emphasized_accelerate">
+    <alpha android:duration="130" android:fromAlpha="1" android:toAlpha="0" />
+    <scale
+        android:duration="240"
+        android:fromXScale="1"
+        android:fromYScale="1"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:toXScale="0.94"
+        android:toYScale="0.94" />
 </set>

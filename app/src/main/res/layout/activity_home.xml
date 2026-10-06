@@ -5,7 +5,14 @@
     android:background="?attr/n_bg"
     android:orientation="vertical">
 
-    <include layout="@layout/view_header" />
+    <include layout="@layout/view_header_large" />
+
+    <View
+        android:id="@+id/headerLine"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:alpha="0"
+        android:background="?attr/n_stroke_soft" />
 
     <ProgressBar
         android:id="@+id/loading"
@@ -15,18 +22,22 @@
         android:indeterminate="true"
         android:visibility="invisible" />
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/refresh"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <ScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="12dp"
+        android:paddingBottom="132dp"
         android:scrollbars="none">
 
         <LinearLayout
@@ -38,10 +49,10 @@
             <EditText
                 android:id="@+id/search"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginStart="14dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginEnd="14dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="16dp"
                 android:background="@drawable/bg_input"
                 android:drawablePadding="10dp"
                 android:drawableStart="@drawable/ic_search"
@@ -193,16 +204,23 @@
         </LinearLayout>
     </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    <LinearLayout
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
 
     <!-- undo bar: shown for a few seconds after moving a note to the trash / archive -->
     <LinearLayout
         android:id="@+id/undoBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="14dp"
-        android:layout_marginEnd="14dp"
-        android:layout_marginBottom="8dp"
-        android:background="@drawable/bg_card"
+        android:layout_marginStart="18dp"
+        android:layout_marginEnd="18dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/bg_composer"
+        android:elevation="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="20dp"
@@ -232,41 +250,47 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- quick capture: type, press send, the note is saved (and synced) -->
+    <!-- quick capture: a floating pill; type, press send, the note is saved (and synced) -->
     <LinearLayout
         android:id="@+id/composer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_bottom_bar"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_composer"
+        android:elevation="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="10dp">
+        android:paddingStart="6dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="6dp"
+        android:paddingBottom="6dp">
 
         <ImageButton
             android:id="@+id/btnList"
-            style="@style/IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_icon_flat"
             android:contentDescription="@string/new_checklist"
-            android:src="@drawable/ic_checklist" />
+            android:scaleType="center"
+            android:src="@drawable/ic_checklist"
+            android:tint="?attr/n_text_secondary" />
 
         <EditText
             android:id="@+id/quickText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_input"
+            android:background="@null"
             android:hint="@string/quick_hint"
             android:importantForAutofill="no"
             android:inputType="textMultiLine|textCapSentences"
             android:maxLines="4"
-            android:minHeight="48dp"
-            android:paddingStart="18dp"
+            android:minHeight="44dp"
+            android:paddingStart="8dp"
             android:paddingTop="10dp"
-            android:paddingEnd="18dp"
+            android:paddingEnd="8dp"
             android:paddingBottom="10dp"
             android:textAlignment="viewStart"
             android:textColor="?attr/n_text_primary"
@@ -275,12 +299,15 @@
 
         <ImageButton
             android:id="@+id/btnSend"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_circle_accent"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_circle_solid"
             android:contentDescription="@string/save"
             android:scaleType="center"
             android:src="@drawable/ic_send"
-            android:tint="?attr/n_accent_text" />
+            android:tint="?attr/n_on_accent" />
     </LinearLayout>
+    </LinearLayout>
+    </FrameLayout>
+
 </LinearLayout>

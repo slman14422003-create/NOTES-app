@@ -32,21 +32,17 @@ public final class Ui {
 
     /** Gives a view a soft "press in, spring back" scale animation. */
     public static void press(Context c, View v) {
-        if (v == null) return;
-        v.setStateListAnimator(android.animation.AnimatorInflater.loadStateListAnimator(c, R.animator.press_scale));
+        Motion.pressable(v);
+    }
+
+    /** Keeps numbers and version strings (e.g. "1.0.8 (18)") in reading order inside right-to-left text. */
+    public static String ltr(Object s) {
+        return "\u2066" + s + "\u2069";
     }
 
     /** Fades and slides a freshly shown item up into place; index staggers neighbouring items. */
     public static void enter(View v, int index) {
-        if (v == null) return;
-        v.animate().cancel();
-        v.setAlpha(0f);
-        v.setTranslationY(dp(v.getContext(), 14));
-        v.animate().alpha(1f).translationY(0f)
-                .setStartDelay(Math.min(Math.max(index, 0), 9) * 28L)
-                .setDuration(300)
-                .setInterpolator(new android.view.animation.DecelerateInterpolator(1.6f))
-                .start();
+        Motion.enter(v, index);
     }
 
     public static int dp(Context c, int v) {
@@ -167,7 +163,38 @@ public final class Ui {
         return t;
     }
 
+    /** Selection change with a short colour cross-fade (the first call just sets the state). */
+    public static void animateChip(final Context c, final TextView t, final boolean selected) {
+        Object prev = t.getTag(R.id.tag_chip);
+        if (prev instanceof Boolean && (Boolean) prev == selected) return;
+        if (!(prev instanceof Boolean) || !Motion.enabled(c)) {
+            setChip(c, t, selected);
+            return;
+        }
+        final int fill0 = color(c, !selected ? R.attr.n_accent_soft : R.attr.n_surface);
+        final int fill1 = color(c, selected ? R.attr.n_accent_soft : R.attr.n_surface);
+        final int stroke0 = color(c, !selected ? R.attr.n_accent : R.attr.n_stroke);
+        final int stroke1 = color(c, selected ? R.attr.n_accent : R.attr.n_stroke);
+        final int text0 = color(c, !selected ? R.attr.n_accent_text : R.attr.n_text_secondary);
+        final int text1 = color(c, selected ? R.attr.n_accent_text : R.attr.n_text_secondary);
+        final GradientDrawable g = new GradientDrawable();
+        g.setCornerRadius(dp(c, 100));
+        t.setBackground(g);
+        t.setTag(R.id.tag_chip, selected);
+        android.animation.ValueAnimator va = android.animation.ValueAnimator.ofFloat(0f, 1f);
+        va.setDuration(220);
+        va.addUpdateListener(an -> {
+            float f = (float) an.getAnimatedValue();
+            android.animation.ArgbEvaluator ev = new android.animation.ArgbEvaluator();
+            g.setColor((int) ev.evaluate(f, fill0, fill1));
+            g.setStroke(dp(c, 1), (int) ev.evaluate(f, stroke0, stroke1));
+            t.setTextColor((int) ev.evaluate(f, text0, text1));
+        });
+        va.start();
+    }
+
     public static void setChip(Context c, TextView t, boolean selected) {
+        t.setTag(R.id.tag_chip, selected);
         GradientDrawable g = new GradientDrawable();
         g.setCornerRadius(dp(c, 100));
         g.setStroke(dp(c, 1), color(c, selected ? R.attr.n_accent : R.attr.n_stroke));

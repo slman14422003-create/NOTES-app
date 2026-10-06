@@ -48,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressBar busyBar;
     private boolean fromApp;
     private CancellationSignal cancel;
+    private android.animation.ObjectAnimator breathe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +79,7 @@ public class LoginActivity extends AppCompatActivity {
         Ui.press(this, btnGoogle);
         btnGoogle.setOnClickListener(v -> google());
         buildLangRow();
+        animateIn();
     }
 
     /** Two pills at the top: العربية | English (the current one is highlighted). */
@@ -97,6 +99,34 @@ public class LoginActivity extends AppCompatActivity {
             });
             row.addView(c);
         }
+    }
+
+    /** Soft accent glow behind the logo that slowly breathes, then the content rises in one after another. */
+    private void animateIn() {
+        View glow = findViewById(R.id.glow);
+        int soft = Ui.color(this, R.attr.n_accent_soft);
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
+                new int[]{soft, soft & 0x00FFFFFF});
+        g.setGradientType(android.graphics.drawable.GradientDrawable.RADIAL_GRADIENT);
+        g.setGradientRadius(Ui.dp(this, 95));
+        g.setGradientCenter(0.5f, 0.5f);
+        glow.setBackground(g);
+        if (!Motion.enabled(this)) return;
+        breathe = android.animation.ObjectAnimator.ofPropertyValuesHolder(glow,
+                android.animation.PropertyValuesHolder.ofFloat(View.SCALE_X, 0.9f, 1.12f),
+                android.animation.PropertyValuesHolder.ofFloat(View.SCALE_Y, 0.9f, 1.12f),
+                android.animation.PropertyValuesHolder.ofFloat(View.ALPHA, 0.65f, 1f));
+        breathe.setDuration(2600);
+        breathe.setRepeatCount(android.animation.ObjectAnimator.INFINITE);
+        breathe.setRepeatMode(android.animation.ObjectAnimator.REVERSE);
+        breathe.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
+        breathe.start();
+        Motion.enter(findViewById(R.id.logoBox), 0);
+        Motion.enter(findViewById(R.id.loginTitle), 1);
+        Motion.enter(findViewById(R.id.loginSub), 2);
+        Motion.enter(btnGoogle, 4);
+        Motion.enter(findViewById(R.id.loginPrivacy), 5);
     }
 
     private void setBusy(boolean busy) {
@@ -194,6 +224,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (cancel != null) cancel.cancel();
+        if (breathe != null) breathe.cancel();
         io.shutdown();
     }
 }

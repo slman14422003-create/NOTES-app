@@ -136,7 +136,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_updates)));
         content.addView(Ui.rowView(this, content,
                 new Row(R.drawable.ic_download, false, getString(R.string.upd_check),
-                        getString(R.string.upd_check_sub, Updater.installedName(this), Updater.installedCode(this)),
+                        getString(R.string.upd_check_sub, Ui.ltr(Updater.installedName(this)), Ui.ltr(Updater.installedCode(this))),
                         false, true),
                 v -> startActivity(new Intent(this, UpdateActivity.class))));
 
@@ -192,7 +192,7 @@ public class SettingsActivity extends AppCompatActivity implements Sync.Listener
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_about)));
         content.addView(Ui.rowView(this, content,
                 new Row(R.drawable.ic_info, false, getString(R.string.app_name),
-                        getString(R.string.version, BuildConfig.VERSION_NAME), false, false), null));
+                        getString(R.string.version, Ui.ltr(BuildConfig.VERSION_NAME)), false, false), null));
         if (cloud) {
             Row out = new Row(R.drawable.ic_logout, false, getString(R.string.sign_out), null, false, false)
                     .tint(Ui.color(this, R.attr.n_bad));

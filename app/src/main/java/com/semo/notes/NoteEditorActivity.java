@@ -21,6 +21,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -53,6 +54,9 @@ public class NoteEditorActivity extends AppCompatActivity {
     private final Handler h = new Handler(Looper.getMainLooper());
     private final Runnable autosave = () -> saveNow(false);
     private boolean binding;
+    private View rootView;
+    private int pageColor;
+    private boolean colorReady;
 
     private EditText titleEt, bodyEt;
     private LinearLayout page, itemsBox, palette;
@@ -70,6 +74,7 @@ public class NoteEditorActivity extends AppCompatActivity {
         titleEt = findViewById(R.id.noteTitle);
         bodyEt = findViewById(R.id.body);
         page = findViewById(R.id.page);
+        rootView = findViewById(R.id.root);
         itemsBox = findViewById(R.id.items);
         palette = findViewById(R.id.palette);
         meta = findViewById(R.id.meta);
@@ -107,6 +112,11 @@ public class NoteEditorActivity extends AppCompatActivity {
         Ui.press(this, btnPin);
         Ui.press(this, more);
         Ui.press(this, btnKind);
+
+        android.animation.LayoutTransition lt = new android.animation.LayoutTransition();
+        lt.setDuration(220);
+        lt.enableTransitionType(android.animation.LayoutTransition.CHANGING);
+        itemsBox.setLayoutTransition(lt);
 
         loadNote(getIntent());
         bindAll();
@@ -189,13 +199,23 @@ public class NoteEditorActivity extends AppCompatActivity {
         }
     }
 
+    /** The whole screen takes the note colour (the default note keeps the plain page colour). */
     private void applyColor() {
-        float r = Ui.dp(this, 28);
-        GradientDrawable g = new GradientDrawable();
-        g.setColor(Palette.card(this, note.color));
-        g.setCornerRadius(r);
-        g.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke_soft));
-        page.setBackground(g);
+        final int to = note.color == 0 ? Ui.color(this, R.attr.n_bg) : Palette.card(this, note.color);
+        if (!colorReady || !Motion.enabled(this) || to == pageColor) {
+            rootView.setBackgroundColor(to);
+            pageColor = to;
+            colorReady = true;
+            return;
+        }
+        final int from = pageColor;
+        pageColor = to;
+        android.animation.ValueAnimator va = android.animation.ValueAnimator.ofObject(
+                new android.animation.ArgbEvaluator(), from, to);
+        va.setDuration(320);
+        va.setInterpolator(new android.view.animation.DecelerateInterpolator(1.5f));
+        va.addUpdateListener(an -> rootView.setBackgroundColor((int) an.getAnimatedValue()));
+        va.start();
     }
 
     private void applyPinIcon() {
@@ -208,27 +228,36 @@ public class NoteEditorActivity extends AppCompatActivity {
         palette.removeAllViews();
         for (int i = 0; i < Palette.DOT.length; i++) {
             final int idx = i;
+            FrameLayout cell = new FrameLayout(this);
+            cell.setLayoutParams(new LinearLayout.LayoutParams(0, Ui.dp(this, 44), 1f));
             View d = new View(this);
             GradientDrawable g = new GradientDrawable();
             g.setShape(GradientDrawable.OVAL);
             g.setColor(Palette.dot(i));
-            if (i == note.color) g.setStroke(Ui.dp(this, 3), Ui.color(this, R.attr.n_text_primary));
+            boolean sel = i == note.color;
+            if (sel) g.setStroke(Ui.dp(this, 3), Ui.color(this, R.attr.n_text_primary));
             else g.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke));
             d.setBackground(g);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(Ui.dp(this, 32), Ui.dp(this, 32));
-            lp.setMarginEnd(Ui.dp(this, 10));
-            lp.gravity = Gravity.CENTER_VERTICAL;
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(Ui.dp(this, 30), Ui.dp(this, 30), Gravity.CENTER);
             d.setLayoutParams(lp);
             d.setContentDescription(getString(R.string.color));
-            Ui.press(this, d);
-            d.setOnClickListener(v -> {
+            if (sel) {
+                d.setScaleX(0.8f);
+                d.setScaleY(0.8f);
+                Motion.spring(d, androidx.dynamicanimation.animation.DynamicAnimation.SCALE_X, 1.12f, 420f, 0.5f);
+                Motion.spring(d, androidx.dynamicanimation.animation.DynamicAnimation.SCALE_Y, 1.12f, 420f, 0.5f);
+            }
+            Ui.press(this, cell);
+            cell.setOnClickListener(v -> {
+                if (idx == note.color) return;
                 syncFromUi();
                 note.color = idx;
                 applyColor();
                 buildPalette();
                 scheduleSave();
             });
-            palette.addView(d);
+            cell.addView(d);
+            palette.addView(cell);
         }
     }
 

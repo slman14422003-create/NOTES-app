@@ -20,7 +20,6 @@
     <string name="tile_note">ملاحظة</string>
     <string name="tile_list">قائمة</string>
     <string name="tile_paste">لصق</string>
-    <string name="tile_search">بحث</string>
     <string name="f_all">الكل</string>
     <string name="f_pinned">المثبتة</string>
     <string name="f_lists">القوائم</string>
@@ -184,4 +183,5 @@
     <string name="th_green">أخضر</string>
     <string name="th_berry">توتي</string>
     <string name="th_yellow">أصفر</string>
+    <string name="status_synced_now">تمت المزامنة الآن</string>
 </resources>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="80dp"
+    android:orientation="horizontal"
+    android:paddingStart="22dp"
+    android:paddingTop="14dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="8dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="serif"
+            android:maxLines="1"
+            android:textAlignment="viewStart"
+            android:textColor="?attr/n_text_primary"
+            android:textSize="32sp" />
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textAlignment="viewStart"
+            android:textColor="?attr/n_text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnA1"
+        style="@style/IconButton"
+        android:layout_marginEnd="8dp"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/btnRefresh"
+        style="@style/IconButton"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="@string/refresh"
+        android:src="@drawable/ic_cloud" />
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        style="@style/IconButton"
+        android:contentDescription="@string/settings"
+        android:src="@drawable/ic_settings" />
+</LinearLayout>
