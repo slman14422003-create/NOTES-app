@@ -42,7 +42,7 @@ import java.util.concurrent.Executors;
 
 /** Main screen: search, quick-access tiles, filters, pinned + recent notes and a quick-capture bar. */
 public class HomeActivity extends SmoothActivity implements Sync.Listener {
-    private static final int PAGE = 60;
+    static final int PAGE = 60;
 
     private Db db;
     private String filter = Db.F_ALL;
@@ -60,6 +60,7 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
     private final Runnable hideUndo = () -> findViewById(R.id.undoBar).setVisibility(View.GONE);
     private SwipeRefreshLayout refresh;
     private android.widget.ScrollView scrollView;
+    private boolean firstDraw = true; // the very first draw may come from the splash-time preload
     private String lastSig = "";      // what is currently drawn: an identical reload is skipped (no flicker, no jump)
     private String lastViewKey = "";  // filter + query of the last draw: the scroll position is kept only inside the same view
     private Button btnMore;
@@ -233,7 +234,8 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
             return;
         }
         Sync.listen(this);
-        Sync.request(this, true); // automatic import + export on every start
+        // automatic import + export on every start (skipped when the splash screen already did it)
+        if (!Preload.takeFreshSync()) Sync.request(this, true);
         reload();
         refreshSyncUi();
         Updater.autoCheck(this); // quiet check for a newer release on GitHub
@@ -425,6 +427,16 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         final int gen = ++reloadGen;
         final String f = filter, q = query;
         final int lim = limit;
+        if (firstDraw) {
+            firstDraw = false;
+            List<Note> pre = Db.F_ALL.equals(f) && q.isEmpty() && lim == PAGE ? Preload.takeFirstPage() : null;
+            if (pre != null) {
+                // already read from SQLite during the splash: draw at once; the normal read below only redraws on a change
+                lastSig = signature(f, q, lim, pre);
+                render(pre, pre.size() > lim ? pre.subList(0, lim) : pre, pre.size() > lim);
+                maybeShowUndo();
+            }
+        }
         dbEx.execute(() -> {
             final List<Note> rows = db.list(f, q, lim + 1);
             final String sig = signature(f, q, lim, rows);

@@ -28,6 +28,11 @@ public final class Prefs {
         return sp(c).getString("mode", MODE_NONE);
     }
 
+    /** Forces the settings file to be read now (called from the splash) so later reads are instant. */
+    public static void warm(Context c) {
+        sp(c).getAll();
+    }
+
     public static boolean isCloud(Context c) {
         return MODE_CLOUD.equals(mode(c)) && !uid(c).isEmpty();
     }

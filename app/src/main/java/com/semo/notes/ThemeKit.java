@@ -65,6 +65,11 @@ public final class ThemeKit {
         }
     }
 
+    /** The theme resource of the current day/night mode + palette. */
+    public static int themeRes(Context c) {
+        return style(isDark(c), Prefs.themeAccent(c));
+    }
+
     /** Call at the start of every screen's onCreate (before setContentView). */
     public static void apply(Activity a) {
         a.setTheme(style(isDark(a), Prefs.themeAccent(a)));

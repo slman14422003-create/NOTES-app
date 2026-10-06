@@ -38,7 +38,8 @@ import java.util.concurrent.Executors;
 public class LoginActivity extends SmoothActivity {
     /** Opened from inside the app: just close when done instead of starting the home screen. */
     public static final String EXTRA_FROM_APP = "from_app";
-    private static final long SPLASH_MS = 1500;
+    private static final long SPLASH_MS = 1500;      // minimum time the mark is shown
+    private static final long SPLASH_MAX_MS = 2300;  // longest the splash waits for the preload / account sync
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -70,14 +71,12 @@ public class LoginActivity extends SmoothActivity {
                     .withEndAction(p::remove).start();
         });
         final long start = SystemClock.uptimeMillis();
-        splash.setKeepOnScreenCondition(() -> !fromApp && SystemClock.uptimeMillis() - start < SPLASH_MS);
+        splash.setKeepOnScreenCondition(() -> !fromApp && holdSplash(start));
 
         if (!fromApp && Prefs.hasAccess(this)) {
-            ui.postDelayed(() -> {
-                if (isFinishing()) return;
-                startActivity(new Intent(this, HomeActivity.class));
-                finish();
-            }, SPLASH_MS);
+            // load settings, the first page of notes and the account sync while the splash is shown
+            Preload.start(this);
+            goHomeWhenReady(start);
             return;
         }
         setContentView(R.layout.activity_login);
@@ -93,6 +92,24 @@ public class LoginActivity extends SmoothActivity {
         if (fromApp) btnLocal.setVisibility(View.GONE);
         buildLangRow();
         animateIn();
+    }
+
+    /** The mark stays at least SPLASH_MS; it stays a bit longer (up to SPLASH_MAX_MS) while the preload is still busy. */
+    private static boolean holdSplash(long start) {
+        long t = SystemClock.uptimeMillis() - start;
+        return t < SPLASH_MS || (Preload.busy() && t < SPLASH_MAX_MS);
+    }
+
+    private void goHomeWhenReady(final long start) {
+        ui.postDelayed(() -> {
+            if (isFinishing()) return;
+            if (holdSplash(start)) {
+                goHomeWhenReady(start);
+                return;
+            }
+            startActivity(new Intent(this, HomeActivity.class));
+            finish();
+        }, 40);
     }
 
     /** Two pills at the top: العربية | English (the current one is highlighted). */
