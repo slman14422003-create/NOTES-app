@@ -58,8 +58,10 @@
 
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_bg</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/anim_semo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/anim_mark</item>
         <item name="windowSplashScreenAnimationDuration">900</item>
+        <!-- small SEMO STUDIO logo at the bottom of the splash (Android 12+; 390x156 px at xxhdpi = 130x52 dp, kept small on purpose) -->
+        <item name="windowSplashScreenBrandingImage">@drawable/splash_brand</item>
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>
 </resources>
