@@ -201,4 +201,5 @@
     <string name="about_version_row">الإصدار</string>
     <string name="about_build_row">رقم البناء</string>
     <string name="about_updates_section">التحديثات</string>
+    <string name="about_credit">تطوير slman · جميع الحقوق محفوظة</string>
 </resources>

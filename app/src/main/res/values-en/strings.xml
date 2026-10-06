@@ -201,4 +201,5 @@
     <string name="about_version_row">Version</string>
     <string name="about_build_row">Build number</string>
     <string name="about_updates_section">Updates</string>
+    <string name="about_credit">Developed by slman · All rights reserved</string>
 </resources>

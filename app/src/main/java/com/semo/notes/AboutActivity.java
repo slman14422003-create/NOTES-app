@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.format.DateUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -150,6 +151,46 @@ public class AboutActivity extends AppCompatActivity {
         final Ui.Toggle auto = Ui.toggle(this, content, R.string.upd_auto, R.string.upd_auto_sub, Prefs.autoUpdate(this));
         auto.onChange((b, on) -> Prefs.setAutoUpdate(this, on));
         content.addView(auto.view);
+
+        content.addView(brandFooter());
+    }
+
+    /** Studio logo on a card that matches its own background, with the credit line under it. */
+    private View brandFooter() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+        LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        bl.setMargins(Ui.dp(this, 14), Ui.dp(this, 28), Ui.dp(this, 14), Ui.dp(this, 8));
+        box.setLayoutParams(bl);
+
+        android.graphics.drawable.GradientDrawable cardBg = new android.graphics.drawable.GradientDrawable();
+        cardBg.setColor(0xFF0D0E15); // same flat colour the logo fades into
+        cardBg.setCornerRadius(Ui.dp(this, 28));
+        android.widget.FrameLayout card = new android.widget.FrameLayout(this);
+        card.setBackground(cardBg);
+        card.setClipToOutline(true);
+        android.widget.ImageView logo = new android.widget.ImageView(this);
+        logo.setImageResource(R.drawable.semo_logo);
+        logo.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+        logo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        card.addView(logo, new android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 230)));
+        box.addView(card, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        TextView credit = new TextView(this);
+        credit.setText(R.string.about_credit);
+        credit.setGravity(android.view.Gravity.CENTER);
+        credit.setTextColor(Ui.color(this, R.attr.n_text_hint));
+        credit.setTextSize(12.5f);
+        credit.setLineSpacing(0, 1.2f);
+        LinearLayout.LayoutParams cl = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cl.topMargin = Ui.dp(this, 14);
+        box.addView(credit, cl);
+        return box;
     }
 
     private void showTerms() {
@@ -183,11 +224,6 @@ public class AboutActivity extends AppCompatActivity {
             });
             content.addView(install);
 
-        }
-        String notes = Updater.cleanNotes(info.body);
-        if (!notes.isEmpty()) {
-            content.addView(Ui.sectionTitle(this, getString(R.string.upd_notes)));
-            content.addView(Ui.noteCard(this, notes, R.attr.n_text_primary));
         }
     }
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SEMO mark: an S with two horns, a thin orbit and a tail. One flat colour, drawn with strokes so it can be traced in. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="240dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:name="mark" android:pivotX="54" android:pivotY="54" android:translateY="6">
+        <group android:pivotX="54" android:pivotY="54" android:rotation="-18">
+            <path android:name="ring" android:pathData="M26,54 a28,8 0 1,0 56,0 a28,8 0 1,0 -56,0" android:strokeColor="#6F5CC4" android:strokeWidth="1.8" android:strokeLineCap="round" />
+        </group>
+        <path android:name="s" android:pathData="M65,39 C65,30 43,30 43,40 C43,50 65,53 65,64 C65,74 43,74 43,65" android:strokeColor="#A58BFF" android:strokeWidth="5.6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+        <path android:name="h1" android:pathData="M47,27 Q39,27 38,19" android:strokeColor="#A58BFF" android:strokeWidth="4" android:strokeLineCap="round" />
+        <path android:name="h2" android:pathData="M61,27 Q69,27 70,19" android:strokeColor="#A58BFF" android:strokeWidth="4" android:strokeLineCap="round" />
+        <path android:name="tail" android:pathData="M63,72 Q73,76 76,67" android:strokeColor="#A58BFF" android:strokeWidth="2.4" android:strokeLineCap="round" />
+    </group>
+</vector>
