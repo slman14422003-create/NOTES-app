@@ -38,7 +38,7 @@ import java.util.concurrent.Executors;
 public class LoginActivity extends SmoothActivity {
     /** Opened from inside the app: just close when done instead of starting the home screen. */
     public static final String EXTRA_FROM_APP = "from_app";
-    private static final long SPLASH_MS = 700;
+    private static final long SPLASH_MS = 1500;
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -62,8 +62,15 @@ public class LoginActivity extends SmoothActivity {
             finish();
             return;
         }
+        // ChatGPT-style exit: the mark holds, then fades out while growing very slightly
+        splash.setOnExitAnimationListener(p -> {
+            View v = p.getView();
+            v.animate().alpha(0f).scaleX(1.06f).scaleY(1.06f).setDuration(320)
+                    .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+                    .withEndAction(p::remove).start();
+        });
         final long start = SystemClock.uptimeMillis();
-        splash.setKeepOnScreenCondition(() -> SystemClock.uptimeMillis() - start < SPLASH_MS);
+        splash.setKeepOnScreenCondition(() -> !fromApp && SystemClock.uptimeMillis() - start < SPLASH_MS);
 
         if (!fromApp && Prefs.hasAccess(this)) {
             ui.postDelayed(() -> {
@@ -73,9 +80,6 @@ public class LoginActivity extends SmoothActivity {
             }, SPLASH_MS);
             return;
         }
-        splash.setOnExitAnimationListener(p -> p.getView().animate().alpha(0f).scaleX(0.92f).scaleY(0.92f)
-                .setDuration(220).withEndAction(p::remove).start());
-
         setContentView(R.layout.activity_login);
         error = findViewById(R.id.error);
         btnGoogle = findViewById(R.id.btnGoogle);
