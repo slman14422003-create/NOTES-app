@@ -9,7 +9,6 @@ import android.os.SystemClock;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,7 +44,7 @@ public class LoginActivity extends SmoothActivity {
     private final Handler ui = new Handler(Looper.getMainLooper());
     private TextView error;
     private Button btnGoogle, btnLocal;
-    private ProgressBar busyBar;
+    private IosSpinner busyBar;
     private boolean fromApp;
     private CancellationSignal cancel;
     private android.animation.ObjectAnimator breathe;
@@ -82,7 +81,6 @@ public class LoginActivity extends SmoothActivity {
         btnGoogle = findViewById(R.id.btnGoogle);
         btnLocal = findViewById(R.id.btnLocal);
         busyBar = findViewById(R.id.busy);
-        Ui.tint(this, busyBar);
         Ui.press(this, btnGoogle);
         btnGoogle.setOnClickListener(v -> google());
         Ui.press(this, btnLocal);

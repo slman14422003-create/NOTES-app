@@ -11,7 +11,6 @@ import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +33,7 @@ import java.util.concurrent.Executors;
 
 public class SettingsActivity extends SmoothActivity implements Sync.Listener {
     private LinearLayout content;
-    private ProgressBar loading;
+    private IosSpinner loading;
     private Db db;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -56,7 +55,6 @@ public class SettingsActivity extends SmoothActivity implements Sync.Listener {
         findViewById(R.id.btnA2).setVisibility(View.GONE);
         findViewById(R.id.btnRefresh).setVisibility(View.INVISIBLE);
         loading = findViewById(R.id.loading);
-        Ui.tint(this, loading);
         content = findViewById(R.id.content);
         Ui.autoGroup(this, content);
 

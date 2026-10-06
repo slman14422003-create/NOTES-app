@@ -102,13 +102,11 @@
             android:layout_marginTop="10dp"
             android:text="@string/continue_local" />
 
-        <ProgressBar
+        <com.semo.notes.IosSpinner
             android:id="@+id/busy"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:layout_marginTop="14dp"
-            android:indeterminate="true"
             android:visibility="invisible" />
 
         <TextView

@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +31,7 @@ public class AboutActivity extends SmoothActivity {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
     private LinearLayout content;
-    private ProgressBar loading;
+    private IosSpinner loading;
     private TextView subtitle;
     private Updater.Info info;
     private String errorText;
@@ -55,7 +54,6 @@ public class AboutActivity extends SmoothActivity {
         Ui.press(this, findViewById(R.id.btnBack));
         Ui.press(this, refresh);
         loading = findViewById(R.id.loading);
-        Ui.tint(this, loading);
         content = findViewById(R.id.content);
         Ui.autoGroup(this, content);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -116,7 +114,6 @@ public class AboutActivity extends SmoothActivity {
     }
 
     private void spinner(boolean on) {
-        loading.setIndeterminate(true);
         loading.setVisibility(on ? View.VISIBLE : View.INVISIBLE);
     }
 
@@ -237,9 +234,6 @@ public class AboutActivity extends SmoothActivity {
         if (in == null || busy) return;
         busy = true;
         render();
-        loading.setIndeterminate(false);
-        loading.setMax(100);
-        loading.setProgress(0);
         loading.setVisibility(View.VISIBLE);
         subtitle.setText(R.string.upd_downloading_start);
         io.execute(() -> {
@@ -248,7 +242,6 @@ public class AboutActivity extends SmoothActivity {
                     if (isFinishing() || isDestroyed()) return;
                     if (total > 0) {
                         int pct = (int) Math.min(100, done * 100 / total);
-                        loading.setProgress(pct);
                         subtitle.setText(getString(R.string.upd_downloading, pct, size(done), size(total)));
                     }
                 }));

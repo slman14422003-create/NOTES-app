@@ -25,7 +25,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -72,7 +71,6 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
     private EditText search, quickText;
     private Button btnEmptyTrash;
     private ImageButton btnSync;
-    private ProgressBar loading;
     private ObjectAnimator spin;
     private final List<TextView> chips = new ArrayList<>();
     private static final String[] FILTERS = {Db.F_ALL, Db.F_PINNED, Db.F_LIST, Db.F_ARCHIVE, Db.F_TRASH};
@@ -89,8 +87,6 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
 
         ((TextView) findViewById(R.id.title)).setText(R.string.app_name);
         subtitle = findViewById(R.id.subtitle);
-        loading = findViewById(R.id.loading);
-        Ui.tint(this, loading);
 
         // header: settings (start), sync status (end)
         ImageButton settings = findViewById(R.id.btnBack);
@@ -278,22 +274,19 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         btnSync.setContentDescription(getString(cloud ? R.string.sync_now : R.string.sign_in));
         int st = Sync.state();
         boolean running = cloud && st == Sync.RUNNING;
-        loading.setVisibility(running ? View.VISIBLE : View.INVISIBLE);
         if (running && Motion.enabled(this)) {
             if (spin == null) {
-                spin = ObjectAnimator.ofPropertyValuesHolder(btnSync,
-                        android.animation.PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.35f),
-                        android.animation.PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 0.9f),
-                        android.animation.PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 0.9f));
-                spin.setDuration(700);
+                // the iPhone spinner: the icon turns in 12 steps of 30 degrees, about one turn per second
+                spin = ObjectAnimator.ofFloat(btnSync, View.ROTATION, 0f, 360f);
+                spin.setDuration(1000);
                 spin.setRepeatCount(ObjectAnimator.INFINITE);
-                spin.setRepeatMode(ObjectAnimator.REVERSE);
-                spin.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
+                spin.setInterpolator(t -> (float) Math.floor(t * 12f) / 12f);
             }
             if (!spin.isStarted()) spin.start();
         } else if (spin != null) {
             spin.cancel();
             spin = null;
+            btnSync.setRotation(0f);
             btnSync.setAlpha(1f);
             btnSync.setScaleX(1f);
             btnSync.setScaleY(1f);
