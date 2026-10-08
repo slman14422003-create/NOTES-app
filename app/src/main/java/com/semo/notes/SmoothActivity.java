@@ -3,6 +3,7 @@ package com.semo.notes;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -52,6 +53,25 @@ public abstract class SmoothActivity extends AppCompatActivity {
         if (content == null) return;
         content.setAlpha(0f);
         content.animate().alpha(1f).setDuration(170).start();
+    }
+
+    /** Every touch feeds the app-wide press effect (see {@link Motion#track}). */
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent e) {
+        Motion.track(this, e);
+        return super.dispatchTouchEvent(e);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (!hasFocus) Motion.release(); // a dialog / menu opened on top: let go of the pressed view
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Motion.release();
     }
 
     /** True while the screen can still be drawn on. */
