@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -64,6 +66,9 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
     private String lastSig = "";      // what is currently drawn: an identical reload is skipped (no flicker, no jump)
     private String lastViewKey = "";  // filter + query of the last draw: the scroll position is kept only inside the same view
     private Button btnMore;
+    private ImageButton btnView;
+    private List<Note> curAll = new ArrayList<>(), curList = new ArrayList<>();
+    private boolean curMore;
 
     private LinearLayout gridPinned, gridAll, chipRow;
     private TextView secPinned, secAll, empty, emptyTitle, subtitle;
@@ -94,7 +99,11 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         settings.setImageResource(R.drawable.ic_settings);
         settings.setContentDescription(getString(R.string.settings));
         settings.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
-        findViewById(R.id.btnA1).setVisibility(View.GONE);
+        btnView = findViewById(R.id.btnA1);
+        btnView.setVisibility(View.VISIBLE);
+        btnView.setOnClickListener(v -> pickViewMode());
+        Ui.press(this, btnView);
+        applyViewIcon();
         btnSync = findViewById(R.id.btnRefresh);
         btnSync.setOnClickListener(v -> {
             if (Prefs.isCloud(this)) Sync.request(this, true);
@@ -317,41 +326,43 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         addTile(row, R.drawable.ic_clipboard, R.string.tile_paste, v -> pasteNote());
     }
 
+    /** Compact quick-access pill: round icon + label side by side (about half the height of the old tall tiles). */
     private void addTile(LinearLayout row, int icon, int label, View.OnClickListener l) {
         LinearLayout t = new LinearLayout(this);
-        t.setOrientation(LinearLayout.VERTICAL);
+        t.setOrientation(LinearLayout.HORIZONTAL);
         t.setGravity(Gravity.CENTER);
-        t.setPadding(Ui.dp(this, 6), Ui.dp(this, 14), Ui.dp(this, 6), Ui.dp(this, 12));
+        t.setPadding(Ui.dp(this, 8), Ui.dp(this, 8), Ui.dp(this, 12), Ui.dp(this, 8));
         GradientDrawable fill = new GradientDrawable();
         fill.setColor(Ui.color(this, R.attr.n_surface));
-        fill.setCornerRadius(Ui.dp(this, 28));
+        fill.setCornerRadius(Ui.dp(this, 100));
         GradientDrawable mask = new GradientDrawable();
         mask.setColor(0xFFFFFFFF);
-        mask.setCornerRadius(Ui.dp(this, 28));
+        mask.setCornerRadius(Ui.dp(this, 100));
         t.setBackground(new RippleDrawable(ColorStateList.valueOf(Ui.color(this, R.attr.n_ripple)), fill, mask));
 
         ImageView iv = new ImageView(this);
         iv.setImageResource(icon);
         iv.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.attr.n_accent_text)));
         iv.setBackgroundResource(R.drawable.bg_circle_accent);
-        int p = Ui.dp(this, 10);
+        int p = Ui.dp(this, 7);
         iv.setPadding(p, p, p, p);
-        t.addView(iv, new LinearLayout.LayoutParams(Ui.dp(this, 46), Ui.dp(this, 46)));
+        t.addView(iv, new LinearLayout.LayoutParams(Ui.dp(this, 34), Ui.dp(this, 34)));
 
         TextView tv = new TextView(this);
         tv.setText(label);
-        tv.setTextSize(12);
+        tv.setTextSize(13);
         tv.setSingleLine(true);
         tv.setEllipsize(TextUtils.TruncateAt.END);
         tv.setGravity(Gravity.CENTER);
-        tv.setTextColor(Ui.color(this, R.attr.n_text_secondary));
+        tv.setTextColor(Ui.color(this, R.attr.n_text_primary));
         LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        tl.topMargin = Ui.dp(this, 8);
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        tl.setMarginStart(Ui.dp(this, 6));
         t.addView(tv, tl);
 
         Ui.press(this, t);
         t.setOnClickListener(l);
+        t.setContentDescription(getString(label));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         lp.setMargins(Ui.dp(this, 5), 0, Ui.dp(this, 5), 0);
         row.addView(t, lp);
@@ -427,19 +438,20 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         final int gen = ++reloadGen;
         final String f = filter, q = query;
         final int lim = limit;
+        final int mode = Prefs.viewMode(this);
         if (firstDraw) {
             firstDraw = false;
             List<Note> pre = Db.F_ALL.equals(f) && q.isEmpty() && lim == PAGE ? Preload.takeFirstPage() : null;
             if (pre != null) {
                 // already read from SQLite during the splash: draw at once; the normal read below only redraws on a change
-                lastSig = signature(f, q, lim, pre);
+                lastSig = signature(f, q, lim, pre, Prefs.viewMode(this));
                 render(pre, pre.size() > lim ? pre.subList(0, lim) : pre, pre.size() > lim);
                 maybeShowUndo();
             }
         }
         dbEx.execute(() -> {
             final List<Note> rows = db.list(f, q, lim + 1);
-            final String sig = signature(f, q, lim, rows);
+            final String sig = signature(f, q, lim, rows, mode);
             ui.post(() -> {
                 if (gen != reloadGen || !alive()) return;
                 // nothing changed since the last draw (typical on every start / sync tick): keep the screen as it is
@@ -453,9 +465,9 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
     }
 
     /** Cheap fingerprint of what the list shows; the minute bucket keeps the relative dates ("5 min ago") fresh. */
-    private static String signature(String f, String q, int lim, List<Note> rows) {
+    private static String signature(String f, String q, int lim, List<Note> rows, int mode) {
         StringBuilder sb = new StringBuilder(rows.size() * 24 + 64);
-        sb.append(f).append('|').append(q).append('|').append(lim).append('|')
+        sb.append(f).append('|').append(q).append('|').append(lim).append('|').append(mode).append('|')
                 .append(System.currentTimeMillis() / 60_000L);
         for (Note n : rows) {
             sb.append('|').append(n.id).append(':').append(n.updatedAt)
@@ -479,6 +491,9 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
     }
 
     private void render(List<Note> all, List<Note> list, boolean hasMore) {
+        curAll = all;
+        curList = list;
+        curMore = hasMore;
         final String viewKey = filter + "|" + query;
         final boolean sameView = viewKey.equals(lastViewKey);
         lastViewKey = viewKey;
@@ -552,22 +567,49 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         if (sameView && keepY > 0) scrollView.post(() -> scrollView.scrollTo(0, keepY));
     }
 
-    /** Two-column masonry: every card goes to the shorter column. */
+    // ------------------------------------------------------------------ view mode
+
+    private void applyViewIcon() {
+        int m = Prefs.viewMode(this);
+        btnView.setImageResource(m == Prefs.VIEW_LIST ? R.drawable.ic_cards
+                : m == Prefs.VIEW_COMPACT ? R.drawable.ic_list : R.drawable.ic_grid);
+        btnView.setContentDescription(getString(R.string.view_mode));
+    }
+
+    private void pickViewMode() {
+        final CharSequence[] names = {getString(R.string.view_grid), getString(R.string.view_list),
+                getString(R.string.view_compact)};
+        new Dlg(this)
+                .setTitle(R.string.view_mode)
+                .setItems(names, (d, which) -> {
+                    if (which == Prefs.viewMode(this)) return;
+                    Prefs.setViewMode(this, which);
+                    applyViewIcon();
+                    shown.clear();          // the cards are new: let them animate in once
+                    lastSig = "";
+                    render(curAll, curList, curMore);
+                })
+                .show();
+    }
+
+    /** Masonry for the grid (two columns, every card goes to the shorter one); one column for the lists. */
     private void fill(LinearLayout host, List<Note> list) {
         host.removeAllViews();
         if (list.isEmpty()) return;
+        final int mode = Prefs.viewMode(this);
+        final int cols = mode == Prefs.VIEW_GRID ? 2 : 1;
         host.setBaselineAligned(false);
-        LinearLayout[] col = new LinearLayout[2];
-        int[] h = new int[2];
-        for (int i = 0; i < 2; i++) {
+        LinearLayout[] col = new LinearLayout[cols];
+        int[] h = new int[cols];
+        for (int i = 0; i < cols; i++) {
             col[i] = new LinearLayout(this);
             col[i].setOrientation(LinearLayout.VERTICAL);
             host.addView(col[i], new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         }
         int idx = 0;
         for (Note n : list) {
-            int c = h[0] <= h[1] ? 0 : 1;
-            View card = card(n);
+            int c = cols == 2 && h[0] > h[1] ? 1 : 0;
+            View card = card(n, mode);
             col[c].addView(card);
             if (!shown.contains(n.id)) {
                 shown.add(n.id);
@@ -592,12 +634,51 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         return e + lines * 19;
     }
 
-    private View card(final Note n) {
+    /** What a card shows: a title (the note's own, or its first line when that is a phone number / link) and a preview. */
+    private static final class Face {
+        String title = "";
+        String body = "";
+        int kind = Smart.NONE; // what the title is: a phone number, a link or plain text
+    }
+
+    private static Face face(Note n) {
+        Face f = new Face();
+        f.title = n.title.trim();
+        f.body = preview(n);
+        if (!f.title.isEmpty()) {
+            f.kind = Smart.kindOf(f.title);
+        } else if (n.kind != Note.KIND_LIST) {
+            Smart.Lead lead = Smart.lead(f.body);
+            if (lead != null) {
+                f.title = lead.line;
+                f.kind = lead.kind;
+                f.body = lead.rest;
+            }
+        }
+        return f;
+    }
+
+    private Drawable kindIcon(int kind, int sizeDp, int colorAttr) {
+        Drawable d = getDrawable(kind == Smart.PHONE ? R.drawable.ic_phone
+                : kind == Smart.LINK ? R.drawable.ic_link
+                : R.drawable.ic_note).mutate();
+        d.setBounds(0, 0, Ui.dp(this, sizeDp), Ui.dp(this, sizeDp));
+        d.setTint(Ui.color(this, colorAttr));
+        return d;
+    }
+
+    private View card(final Note n, int mode) {
+        final boolean compact = mode == Prefs.VIEW_COMPACT;
+        final boolean wide = mode != Prefs.VIEW_GRID;
+        final Face face = face(n);
+        final boolean smartTitle = face.kind != Smart.NONE;
+
         LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        int pad = Ui.dp(this, 18);
-        card.setPadding(pad, pad, pad, Ui.dp(this, 14));
-        float r = Ui.dp(this, 28);
+        card.setOrientation(compact ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        if (compact) card.setGravity(Gravity.CENTER_VERTICAL);
+        int pad = Ui.dp(this, compact ? 14 : 18);
+        card.setPadding(pad, compact ? Ui.dp(this, 12) : pad, pad, compact ? Ui.dp(this, 12) : Ui.dp(this, 14));
+        float r = Ui.dp(this, compact ? 20 : 28);
         GradientDrawable fill = new GradientDrawable();
         fill.setColor(Palette.card(this, n.color));
         fill.setCornerRadius(r);
@@ -608,38 +689,93 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         card.setBackground(new RippleDrawable(ColorStateList.valueOf(Ui.color(this, R.attr.n_ripple)), fill, mask));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(Ui.dp(this, 5), Ui.dp(this, 5), Ui.dp(this, 5), Ui.dp(this, 5));
+        int m = Ui.dp(this, compact ? 3 : 5);
+        lp.setMargins(Ui.dp(this, 5), m, Ui.dp(this, 5), m);
         card.setLayoutParams(lp);
 
-        if (!n.title.trim().isEmpty()) {
+        Ui.press(this, card);
+        card.setOnClickListener(v -> startActivity(new Intent(this, NoteEditorActivity.class)
+                .putExtra(NoteEditorActivity.EXTRA_ID, n.id)));
+        card.setOnLongClickListener(v -> {
+            NoteActions.menu(this, n, false, this::reload);
+            return true;
+        });
+
+        if (compact) {
+            buildCompact(card, n, face, smartTitle);
+            return card;
+        }
+
+        // ---- title row: [icon] title [call / open button in the list view]
+        List<Smart.Hit> titleHits = smartTitle ? Smart.find(face.title) : new ArrayList<>();
+        if (!face.title.isEmpty()) {
+            LinearLayout row = new LinearLayout(this);
+            row.setGravity(Gravity.CENTER_VERTICAL);
             TextView t = new TextView(this);
-            t.setText(n.title.trim());
+            t.setText(face.title);
             t.setTypeface(Typeface.SERIF);
-            t.setTextSize(16);
-            t.setMaxLines(3);
+            t.setTextSize(wide ? 17 : 16);
+            t.setMaxLines(wide ? 2 : 3);
             t.setEllipsize(TextUtils.TruncateAt.END);
             t.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
             t.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
-            t.setTextColor(Ui.color(this, R.attr.n_text_primary));
-            card.addView(t);
+            if (smartTitle) {
+                t.setTextColor(Ui.color(this, R.attr.n_accent_text));
+                t.setTypeface(Typeface.SERIF, Typeface.BOLD);
+                t.setCompoundDrawablePadding(Ui.dp(this, 8));
+                t.setCompoundDrawablesRelative(kindIcon(face.kind, 18, R.attr.n_accent_text), null, null, null);
+            } else {
+                t.setTextColor(Ui.color(this, R.attr.n_text_primary));
+            }
+            row.addView(t, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            if (wide && !titleHits.isEmpty()) row.addView(actionButton(titleHits.get(0)));
+            card.addView(row);
         }
-        String preview = preview(n);
-        if (!preview.isEmpty()) {
+
+        // ---- preview
+        if (!face.body.isEmpty()) {
             TextView b = new TextView(this);
-            b.setText(preview);
-            b.setTextSize(13.5f);
-            b.setMaxLines(8);
+            b.setText(face.body);
+            b.setTextSize(wide ? 14 : 13.5f);
+            b.setMaxLines(wide ? 6 : 8);
             b.setEllipsize(TextUtils.TruncateAt.END);
             b.setLineSpacing(0, 1.1f);
             b.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
             b.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
-            b.setTextColor(Ui.color(this, n.title.trim().isEmpty() ? R.attr.n_text_primary : R.attr.n_text_secondary));
+            b.setTextColor(Ui.color(this, face.title.isEmpty() ? R.attr.n_text_primary : R.attr.n_text_secondary));
             LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            if (!n.title.trim().isEmpty()) bl.topMargin = Ui.dp(this, 6);
+            if (!face.title.isEmpty()) bl.topMargin = Ui.dp(this, 6);
             card.addView(b, bl);
         }
 
+        // ---- other numbers / links of the note as tappable chips (list view only: the grid cards are narrow)
+        if (wide) {
+            List<Smart.Hit> hits = Smart.find(n.plainText());
+            LinearLayout chips = new LinearLayout(this);
+            chips.setOrientation(LinearLayout.HORIZONTAL);
+            int added = 0;
+            java.util.Set<String> seen = new java.util.HashSet<>();
+            for (Smart.Hit h : titleHits) seen.add(h.target());
+            for (Smart.Hit h : hits) {
+                if (added >= 3) break;
+                if (!seen.add(h.target())) continue;
+                chips.addView(hitChip(h));
+                added++;
+            }
+            if (added > 0) {
+                HorizontalScrollView hs = new HorizontalScrollView(this);
+                hs.setHorizontalScrollBarEnabled(false);
+                hs.setOverScrollMode(View.OVER_SCROLL_NEVER);
+                hs.addView(chips);
+                LinearLayout.LayoutParams cl = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                cl.topMargin = Ui.dp(this, 10);
+                card.addView(hs, cl);
+            }
+        }
+
+        // ---- footer: date, checklist progress, pin
         LinearLayout foot = new LinearLayout(this);
         foot.setGravity(Gravity.CENTER_VERTICAL);
         TextView d = new TextView(this);
@@ -651,39 +787,148 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         d.setTextColor(Ui.color(this, R.attr.n_text_hint));
         foot.addView(d, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         if (n.kind == Note.KIND_LIST) {
-            int total = 0, done = 0;
-            for (Note.Item i : Note.items(n.body)) {
-                if (i.text.trim().isEmpty()) continue;
-                total++;
-                if (i.done) done++;
-            }
-            if (total > 0) {
-                TextView p = new TextView(this);
-                p.setText(getString(R.string.list_progress, done, total));
-                p.setTextSize(11);
-                p.setSingleLine(true);
-                boolean all = done == total;
-                p.setTextColor(Ui.color(this, all ? R.attr.n_ok : R.attr.n_text_hint));
-                LinearLayout.LayoutParams pl = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                pl.setMarginStart(Ui.dp(this, 6));
-                foot.addView(p, pl);
-            }
+            int[] p = progress(n);
+            if (p[1] > 0) foot.addView(progressView(p));
         }
         if (n.pinned) foot.addView(smallIcon(R.drawable.ic_star, R.attr.n_accent_text));
         LinearLayout.LayoutParams fl = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         fl.topMargin = Ui.dp(this, 10);
         card.addView(foot, fl);
+        return card;
+    }
 
-        Ui.press(this, card);
-        card.setOnClickListener(v -> startActivity(new Intent(this, NoteEditorActivity.class)
-                .putExtra(NoteEditorActivity.EXTRA_ID, n.id)));
-        card.setOnLongClickListener(v -> {
-            NoteActions.menu(this, n, false, this::reload);
+    /** One tidy row per note: kind icon, title + one line of preview, then date and pin. */
+    private void buildCompact(LinearLayout card, Note n, Face face, boolean smartTitle) {
+        String title = face.title;
+        String sub = face.body;
+        if (title.isEmpty() && !sub.isEmpty()) { // no title: the first line plays that role
+            int nl = sub.indexOf('\n');
+            title = nl < 0 ? sub : sub.substring(0, nl).trim();
+            sub = nl < 0 ? "" : sub.substring(nl + 1).trim();
+        }
+        int kind = smartTitle ? face.kind : Smart.NONE;
+        int iconRes = kind == Smart.PHONE ? R.drawable.ic_phone : kind == Smart.LINK ? R.drawable.ic_link
+                : n.kind == Note.KIND_LIST ? R.drawable.ic_checklist : R.drawable.ic_note;
+        ImageView ic = new ImageView(this);
+        ic.setImageResource(iconRes);
+        ic.setImageTintList(ColorStateList.valueOf(Ui.color(this,
+                smartTitle ? R.attr.n_accent_text : R.attr.n_text_secondary)));
+        LinearLayout.LayoutParams il = new LinearLayout.LayoutParams(Ui.dp(this, 20), Ui.dp(this, 20));
+        il.setMarginEnd(Ui.dp(this, 12));
+        card.addView(ic, il);
+
+        LinearLayout mid = new LinearLayout(this);
+        mid.setOrientation(LinearLayout.VERTICAL);
+        TextView t = new TextView(this);
+        t.setText(title.isEmpty() ? getString(R.string.new_note) : title);
+        t.setTypeface(Typeface.SERIF, smartTitle ? Typeface.BOLD : Typeface.NORMAL);
+        t.setTextSize(15.5f);
+        t.setSingleLine(true);
+        t.setEllipsize(TextUtils.TruncateAt.END);
+        t.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+        t.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+        t.setTextColor(Ui.color(this, smartTitle ? R.attr.n_accent_text : R.attr.n_text_primary));
+        mid.addView(t);
+        if (!sub.isEmpty()) {
+            TextView s = new TextView(this);
+            s.setText(sub.replace('\n', ' '));
+            s.setTextSize(12.5f);
+            s.setSingleLine(true);
+            s.setEllipsize(TextUtils.TruncateAt.END);
+            s.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+            s.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+            s.setTextColor(Ui.color(this, R.attr.n_text_secondary));
+            mid.addView(s);
+        }
+        card.addView(mid, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        LinearLayout end = new LinearLayout(this);
+        end.setOrientation(LinearLayout.VERTICAL);
+        end.setGravity(Gravity.END);
+        TextView d = new TextView(this);
+        d.setText(DateUtils.getRelativeTimeSpanString(n.updatedAt, System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL));
+        d.setTextSize(11);
+        d.setSingleLine(true);
+        d.setTextColor(Ui.color(this, R.attr.n_text_hint));
+        end.addView(d);
+        if (n.kind == Note.KIND_LIST) {
+            int[] p = progress(n);
+            if (p[1] > 0) end.addView(progressView(p));
+        }
+        LinearLayout.LayoutParams el = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        el.setMarginStart(Ui.dp(this, 10));
+        card.addView(end, el);
+        if (n.pinned) card.addView(smallIcon(R.drawable.ic_star, R.attr.n_accent_text));
+    }
+
+    private static int[] progress(Note n) {
+        int total = 0, done = 0;
+        for (Note.Item i : Note.items(n.body)) {
+            if (i.text.trim().isEmpty()) continue;
+            total++;
+            if (i.done) done++;
+        }
+        return new int[]{done, total};
+    }
+
+    private TextView progressView(int[] p) {
+        TextView v = new TextView(this);
+        v.setText(getString(R.string.list_progress, p[0], p[1]));
+        v.setTextSize(11);
+        v.setSingleLine(true);
+        v.setTextColor(Ui.color(this, p[0] == p[1] ? R.attr.n_ok : R.attr.n_text_hint));
+        LinearLayout.LayoutParams pl = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        pl.setMarginStart(Ui.dp(this, 6));
+        v.setLayoutParams(pl);
+        return v;
+    }
+
+    /** Round call / open button shown at the end of the title row. */
+    private ImageButton actionButton(final Smart.Hit h) {
+        ImageButton b = new ImageButton(this);
+        b.setImageResource(h.kind == Smart.PHONE ? R.drawable.ic_phone : R.drawable.ic_link);
+        b.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.attr.n_accent_text)));
+        b.setBackgroundResource(R.drawable.bg_circle_accent);
+        b.setScaleType(ImageView.ScaleType.CENTER);
+        b.setContentDescription(getString(h.kind == Smart.PHONE ? R.string.call_number : R.string.open_link));
+        b.setOnClickListener(v -> Smart.open(this, h));
+        b.setOnLongClickListener(v -> {
+            Smart.copy(this, h);
             return true;
         });
-        return card;
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(Ui.dp(this, 40), Ui.dp(this, 40));
+        lp.setMarginStart(Ui.dp(this, 10));
+        b.setLayoutParams(lp);
+        return b;
+    }
+
+    /** Small pill with a phone number or link: tap to call / open, long-press to copy. */
+    private TextView hitChip(final Smart.Hit h) {
+        TextView c = new TextView(this);
+        c.setText(h.label());
+        c.setTextSize(12.5f);
+        c.setSingleLine(true);
+        c.setTextDirection(View.TEXT_DIRECTION_LTR);
+        c.setTextColor(Ui.color(this, R.attr.n_accent_text));
+        c.setBackgroundResource(R.drawable.bg_pill_neutral);
+        c.setCompoundDrawablePadding(Ui.dp(this, 6));
+        c.setCompoundDrawablesRelative(kindIcon(h.kind, 14, R.attr.n_accent_text), null, null, null);
+        c.setGravity(Gravity.CENTER_VERTICAL);
+        c.setPadding(Ui.dp(this, 12), Ui.dp(this, 7), Ui.dp(this, 12), Ui.dp(this, 7));
+        c.setOnClickListener(v -> Smart.open(this, h));
+        c.setOnLongClickListener(v -> {
+            Smart.copy(this, h);
+            return true;
+        });
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMarginEnd(Ui.dp(this, 8));
+        c.setLayoutParams(lp);
+        return c;
     }
 
     private ImageView smallIcon(int res, int color) {

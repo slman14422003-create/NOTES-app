@@ -196,6 +196,20 @@ public final class Prefs {
         sp(c).edit().putBoolean("autoSync", on).apply();
     }
 
+    public static final int VIEW_GRID = 0;
+    public static final int VIEW_LIST = 1;
+    public static final int VIEW_COMPACT = 2;
+
+    /** How the notes are laid out on the home screen: grid, detailed list or compact list. */
+    public static int viewMode(Context c) {
+        int v = sp(c).getInt("viewMode", VIEW_GRID);
+        return v < VIEW_GRID || v > VIEW_COMPACT ? VIEW_GRID : v;
+    }
+
+    public static void setViewMode(Context c, int v) {
+        sp(c).edit().putInt("viewMode", v).apply();
+    }
+
     /** Server timestamp of the newest cloud change already imported ("" = import everything). */
     public static String cursor(Context c) {
         return sp(c).getString("cursor", "");

@@ -211,4 +211,12 @@
     <string name="sign_in_sync_sub">سجّل بحساب Google لحفظ ملاحظاتك في حسابك والوصول إليها من أجهزة أخرى</string>
     <string name="delete_local_data_sub">يحذف كل ملاحظاتك من هذا الجهاز نهائيًا</string>
     <string name="delete_local_data_msg">سيتم حذف كل ملاحظاتك من هذا الجهاز نهائيًا. لا يمكن التراجع. صدّر نسخة احتياطية أولًا إن أردت الاحتفاظ بها.</string>
+    <string name="cant_open">تعذّر فتح هذا الرابط أو الرقم</string>
+    <string name="view_mode">طريقة العرض</string>
+    <string name="view_grid">شبكة</string>
+    <string name="view_list">قائمة مفصّلة</string>
+    <string name="view_compact">قائمة مضغوطة</string>
+    <string name="call_number">اتصال</string>
+    <string name="open_link">فتح الرابط</string>
+    <string name="note_links">أرقام وروابط في الملاحظة</string>
 </resources>

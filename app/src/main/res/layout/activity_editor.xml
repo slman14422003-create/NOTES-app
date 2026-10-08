@@ -56,6 +56,22 @@
                 android:textColor="?attr/n_text_secondary"
                 android:textSize="12sp" />
 
+            <!-- phone numbers and links found in the note: tap to call / open, long-press to copy -->
+            <HorizontalScrollView
+                android:id="@+id/smartScroll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:scrollbars="none"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/smartRow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+
             <EditText
                 android:id="@+id/body"
                 android:layout_width="match_parent"

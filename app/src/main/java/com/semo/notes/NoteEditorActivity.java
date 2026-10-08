@@ -61,6 +61,9 @@ public class NoteEditorActivity extends SmoothActivity {
     private LinearLayout page, itemsBox, palette;
     private TextView meta, addItem, btnKind;
     private ImageButton btnPin;
+    private View smartScroll;
+    private LinearLayout smartRow;
+    private final Runnable smartRun = this::updateSmart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +80,8 @@ public class NoteEditorActivity extends SmoothActivity {
         itemsBox = findViewById(R.id.items);
         palette = findViewById(R.id.palette);
         meta = findViewById(R.id.meta);
+        smartScroll = findViewById(R.id.smartScroll);
+        smartRow = findViewById(R.id.smartRow);
         addItem = findViewById(R.id.addItem);
         btnKind = findViewById(R.id.btnKind);
         titleEt.setFilters(new InputFilter[]{new InputFilter.LengthFilter(MAX_TITLE)});
@@ -177,6 +182,7 @@ public class NoteEditorActivity extends SmoothActivity {
         applyPinIcon();
         buildPalette();
         updateMeta();
+        updateSmart();
         binding = false;
     }
 
@@ -420,6 +426,57 @@ public class NoteEditorActivity extends SmoothActivity {
     private void scheduleSave() {
         h.removeCallbacks(autosave);
         h.postDelayed(autosave, 700);
+        h.removeCallbacks(smartRun);
+        h.postDelayed(smartRun, 500);
+    }
+
+    /** Shows the phone numbers and links found in the title / text as tappable chips under the date line. */
+    private void updateSmart() {
+        String all = titleEt.getText().toString() + "\n";
+        if (note.kind == Note.KIND_LIST) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < itemsBox.getChildCount(); i++) {
+                sb.append(((EditText) ((LinearLayout) itemsBox.getChildAt(i)).getChildAt(1)).getText()).append('\n');
+            }
+            all += sb;
+        } else {
+            all += bodyEt.getText().toString();
+        }
+        List<Smart.Hit> hits = Smart.find(all);
+        smartRow.removeAllViews();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (final Smart.Hit hit : hits) {
+            if (smartRow.getChildCount() >= 8) break;
+            if (!seen.add(hit.target())) continue;
+            TextView c = new TextView(this);
+            c.setText(hit.label());
+            c.setTextSize(13);
+            c.setSingleLine(true);
+            c.setTextDirection(View.TEXT_DIRECTION_LTR);
+            c.setTextColor(Ui.color(this, R.attr.n_accent_text));
+            c.setBackgroundResource(R.drawable.bg_pill_neutral);
+            android.graphics.drawable.Drawable ic = getDrawable(hit.kind == Smart.PHONE
+                    ? R.drawable.ic_phone : R.drawable.ic_link).mutate();
+            ic.setBounds(0, 0, Ui.dp(this, 16), Ui.dp(this, 16));
+            ic.setTint(Ui.color(this, R.attr.n_accent_text));
+            c.setCompoundDrawablePadding(Ui.dp(this, 6));
+            c.setCompoundDrawablesRelative(ic, null, null, null);
+            c.setGravity(Gravity.CENTER_VERTICAL);
+            c.setMinHeight(Ui.dp(this, 40));
+            c.setPadding(Ui.dp(this, 14), Ui.dp(this, 8), Ui.dp(this, 14), Ui.dp(this, 8));
+            c.setContentDescription(getString(hit.kind == Smart.PHONE ? R.string.call_number : R.string.open_link)
+                    + " " + hit.label());
+            c.setOnClickListener(v -> Smart.open(this, hit));
+            c.setOnLongClickListener(v -> {
+                Smart.copy(this, hit);
+                return true;
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.setMarginEnd(Ui.dp(this, 8));
+            smartRow.addView(c, lp);
+        }
+        smartScroll.setVisibility(smartRow.getChildCount() > 0 ? View.VISIBLE : View.GONE);
     }
 
     /** {@code leaving}: the screen is closing - an empty note is not kept. */

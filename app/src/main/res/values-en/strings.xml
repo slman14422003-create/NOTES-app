@@ -211,4 +211,12 @@
     <string name="sign_in_sync_sub">Sign in with Google to keep your notes in your account and reach them on other devices</string>
     <string name="delete_local_data_sub">Permanently deletes all your notes from this device</string>
     <string name="delete_local_data_msg">All your notes will be permanently deleted from this device. This cannot be undone. Export a backup first if you want to keep them.</string>
+    <string name="cant_open">Can\'t open this link or number</string>
+    <string name="view_mode">View</string>
+    <string name="view_grid">Grid</string>
+    <string name="view_list">Detailed list</string>
+    <string name="view_compact">Compact list</string>
+    <string name="call_number">Call</string>
+    <string name="open_link">Open link</string>
+    <string name="note_links">Numbers and links in this note</string>
 </resources>
