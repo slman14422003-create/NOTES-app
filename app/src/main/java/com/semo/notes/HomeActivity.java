@@ -48,6 +48,7 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
 
     private Db db;
     private String filter = Db.F_ALL;
+    private OnBackPressedCallback backCb;
     private String query = "";
     private int limit = PAGE;
     private int reloadGen;
@@ -181,6 +182,7 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
 
             @Override
             public void afterTextChanged(Editable s) {
+                updateBack();
                 query = s.toString().trim();
                 limit = PAGE;
                 shown.clear();
@@ -217,19 +219,19 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
                 .setNegativeButton(R.string.cancel, null)
                 .show());
 
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+        backCb = new OnBackPressedCallback(false) {
             @Override
             public void handleOnBackPressed() {
                 if (!search.getText().toString().isEmpty()) {
                     search.setText("");
                 } else if (!Db.F_ALL.equals(filter)) {
                     setFilter(Db.F_ALL);
-                } else {
-                    setEnabled(false);
-                    getOnBackPressedDispatcher().onBackPressed();
                 }
+                updateBack();
             }
-        });
+        };
+        getOnBackPressedDispatcher().addCallback(this, backCb);
+        updateBack();
     }
 
     @Override
@@ -423,8 +425,14 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         }
     }
 
+    private void updateBack() {
+        if (backCb == null || search == null) return;
+        backCb.setEnabled(!search.getText().toString().isEmpty() || !Db.F_ALL.equals(filter));
+    }
+
     private void setFilter(String f) {
         filter = f;
+        updateBack();
         limit = PAGE;
         shown.clear(); // a new list: let its cards animate in
         for (int i = 0; i < chips.size(); i++) Ui.animateChip(this, chips.get(i), FILTERS[i].equals(filter));

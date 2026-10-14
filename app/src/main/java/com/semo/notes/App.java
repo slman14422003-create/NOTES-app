@@ -26,6 +26,7 @@ public class App extends Application {
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(Activity a, Bundle b) {
+                Motion.install(a);
             }
 
             @Override
