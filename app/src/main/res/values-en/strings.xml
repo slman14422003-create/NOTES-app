@@ -219,4 +219,10 @@
     <string name="call_number">Call</string>
     <string name="open_link">Open link</string>
     <string name="note_links">Numbers and links in this note</string>
+
+    <!-- Semo ecosystem -->
+    <string name="eco_title">Semo apps · tap to open</string>
+    <string name="eco_none">No other Semo apps are installed on this phone</string>
+    <string name="eco_show_files">Show in Files</string>
+    <string name="eco_save_note">Save to Notes</string>
 </resources>

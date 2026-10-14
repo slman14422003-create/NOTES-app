@@ -5,6 +5,12 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+        <queries>
+        <intent>
+            <action android:name="app.semo.ECOSYSTEM" />
+        </intent>
+    </queries>
+
     <application
         android:name=".App"
         android:allowBackup="false"
@@ -19,6 +25,10 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
 
+        <!-- Semo ecosystem: what this app is, so the other Semo apps can find and use it -->
+        <meta-data android:name="app.semo.ROLE" android:value="notes" />
+
+
         <!-- Launcher: first run = choose how to keep notes, afterwards straight to the home screen.
              The two shortcuts (long-press the app icon) open a new note / new checklist at once. -->
         <activity
@@ -28,6 +38,10 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="app.semo.ECOSYSTEM" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"

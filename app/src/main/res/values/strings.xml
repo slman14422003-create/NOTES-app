@@ -219,4 +219,10 @@
     <string name="call_number">اتصال</string>
     <string name="open_link">فتح الرابط</string>
     <string name="note_links">أرقام وروابط في الملاحظة</string>
+
+    <!-- Semo ecosystem -->
+    <string name="eco_title">منظومة Semo · المس لفتح التطبيق</string>
+    <string name="eco_none">لا توجد تطبيقات Semo أخرى مثبّتة على هذا الهاتف</string>
+    <string name="eco_show_files">إظهار في الملفات</string>
+    <string name="eco_save_note">حفظ في الملاحظات</string>
 </resources>

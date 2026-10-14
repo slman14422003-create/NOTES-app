@@ -148,6 +148,17 @@ public class AboutActivity extends SmoothActivity {
         auto.onChange((b, on) -> Prefs.setAutoUpdate(this, on));
         content.addView(auto.view);
 
+        // Semo ecosystem: the other Semo apps on this phone
+        content.addView(Ui.sectionTitle(this, getString(R.string.eco_title)));
+        java.util.List<Semo.Sibling> sibs = Semo.siblings(this);
+        if (sibs.isEmpty()) {
+            add(new Row(R.drawable.ic_info, false, getString(R.string.eco_none), null, false, false), null);
+        }
+        for (final Semo.Sibling sib : sibs) {
+            add(new Row(R.drawable.ic_info, false, sib.label.toString(),
+                    Ui.ltr(sib.version) + " (" + Ui.ltr(sib.code) + ")", false, true), v -> Semo.open(this, sib.pkg));
+        }
+
         content.addView(brandFooter());
     }
 
