@@ -65,6 +65,7 @@ final class LiftMenu {
         LinearLayout menu;
         boolean closing;
         ValueAnimator backdrop;
+        ValueAnimator blurAnim;
 
         Session(Activity a, View anchor, List<Item> items) {
             this.a = a;
@@ -116,7 +117,8 @@ final class LiftMenu {
 
             dialog.show();
             Motion.thud(snap);
-            backdrop = Glass.animateBehind(w, 0.28f, true, null);
+            backdrop = Glass.animateBehind(w, 0.22f, true, null);
+            blurAnim = Glass.animateContent(a, true, null);
             root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 boolean done;
 
@@ -277,6 +279,11 @@ final class LiftMenu {
                 backdrop.removeAllListeners();
                 backdrop.cancel();
             }
+            if (blurAnim != null) {
+                blurAnim.removeAllListeners();
+                blurAnim.cancel();
+            }
+            Glass.animateContent(a, false, null);
             Window w = dialog.getWindow();
             if (snap != null) {
                 Motion.spring(snap, DynamicAnimation.SCALE_X, 1f, 500f, 0.8f);
@@ -298,7 +305,10 @@ final class LiftMenu {
                 finish.run();
                 return;
             }
-            Glass.animateBehind(w, 0.28f, false, finish);
+            Glass.animateBehind(w, 0.22f, false, () -> {
+                Glass.clearContent(a);
+                finish.run();
+            });
         }
     }
 }

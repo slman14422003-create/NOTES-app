@@ -3,6 +3,10 @@ package com.semo.notes;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.app.Activity;
+import android.content.ContextWrapper;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -81,37 +85,67 @@ final class Glass {
         bindTop(bar, target, sv);
     }
 
-    /** True when the platform can blur what is behind a window and the user has not switched the blur off. */
-    static boolean behindSupported(Context c) {
-        if (Build.VERSION.SDK_INT < 31 || Prefs.blurLevel(c) <= 0) return false;
-        WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
-        return wm != null && wm.isCrossWindowBlurEnabled();
+    /** Blur radius in pixels for a 0..100 level; 100 is about 30dp. */
+    static float contentRadiusPx(Context c, int level) {
+        return Ui.dp(c, 1) * level * 0.3f;
     }
 
-    /** Blur radius in pixels for a 0..100 level (100 is about 50dp, the strength of an iOS context menu backdrop). */
-    static int radiusPx(Context c, int level) {
-        return Ui.dp(c, Math.round(level * 0.5f));
+    static Activity activityOf(Context c) {
+        while (c instanceof ContextWrapper) {
+            if (c instanceof Activity) return (Activity) c;
+            c = ((ContextWrapper) c).getBaseContext();
+        }
+        return null;
+    }
+
+    /** Removes the blur from the screen content. */
+    static void clearContent(Activity a) {
+        if (a == null || Build.VERSION.SDK_INT < 31) return;
+        a.getWindow().getDecorView().setRenderEffect(null);
     }
 
     /**
-     * Fades the blur and the dim behind a window in or out. Blur strength follows the level chosen in the settings;
-     * where window blur is not available only the dim is animated.
+     * Blurs the whole screen of an activity inside the app (a render effect on its content), so it does not depend
+     * on the system's cross-window blur setting. Strength follows the level chosen in the settings.
+     * Below Android 12 nothing is blurred.
      */
+    static ValueAnimator animateContent(final Activity a, final boolean in, final Runnable end) {
+        final int level = a == null ? 0 : Prefs.blurLevel(a);
+        if (a == null || Build.VERSION.SDK_INT < 31 || level <= 0) {
+            if (end != null) end.run();
+            return null;
+        }
+        final View v = a.getWindow().getDecorView();
+        final float max = contentRadiusPx(a, level);
+        final ValueAnimator va = ValueAnimator.ofFloat(in ? 0f : 1f, in ? 1f : 0f);
+        va.setDuration(in ? 340 : 210);
+        va.setInterpolator(new DecelerateInterpolator(1.6f));
+        va.addUpdateListener(u -> {
+            float r = max * (float) u.getAnimatedValue();
+            if (r < 0.5f) v.setRenderEffect(null);
+            else v.setRenderEffect(RenderEffect.createBlurEffect(r, r, Shader.TileMode.CLAMP));
+        });
+        va.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (!in) v.setRenderEffect(null);
+                if (end != null) end.run();
+            }
+        });
+        va.start();
+        return va;
+    }
+
+    /** Fades the dim behind a window in or out. */
     static ValueAnimator animateBehind(final Window w, final float maxDim, final boolean in, final Runnable end) {
-        final Context c = w.getContext();
-        final boolean blur = behindSupported(c);
-        final int maxR = blur ? radiusPx(c, Prefs.blurLevel(c)) : 0;
-        if (blur) w.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
         w.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         final ValueAnimator a = ValueAnimator.ofFloat(in ? 0f : 1f, in ? 1f : 0f);
         a.setDuration(in ? 340 : 210);
         a.setInterpolator(new DecelerateInterpolator(1.6f));
         a.addUpdateListener(u -> {
-            float f = (float) u.getAnimatedValue();
             try {
                 WindowManager.LayoutParams p = w.getAttributes();
-                p.dimAmount = maxDim * f;
-                if (blur && Build.VERSION.SDK_INT >= 31) p.setBlurBehindRadius(Math.round(maxR * f));
+                p.dimAmount = maxDim * (float) u.getAnimatedValue();
                 w.setAttributes(p);
             } catch (Throwable t) {
                 a.cancel();
@@ -127,11 +161,13 @@ final class Glass {
         return a;
     }
 
-    /** Blurs everything behind a dialog window (the iOS alert backdrop), fading in. */
+    /** Blurs and dims everything behind a dialog (the iOS alert backdrop), fading in; cleared when the dialog goes. */
     static void behind(Window w) {
-        if (w == null || !behindSupported(w.getContext())) return;
+        if (w == null || Prefs.blurLevel(w.getContext()) <= 0) return;
         try {
-            final ValueAnimator a = animateBehind(w, 0.30f, true, null);
+            final Activity act = activityOf(w.getContext());
+            final ValueAnimator dim = animateBehind(w, 0.30f, true, null);
+            final ValueAnimator blur = animateContent(act, true, null);
             w.getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
                 @Override
                 public void onViewAttachedToWindow(View v) {
@@ -139,8 +175,13 @@ final class Glass {
 
                 @Override
                 public void onViewDetachedFromWindow(View v) {
-                    a.removeAllListeners();
-                    a.cancel();
+                    dim.removeAllListeners();
+                    dim.cancel();
+                    if (blur != null) {
+                        blur.removeAllListeners();
+                        blur.cancel();
+                    }
+                    clearContent(act);
                 }
             });
         } catch (Throwable ignored) {
