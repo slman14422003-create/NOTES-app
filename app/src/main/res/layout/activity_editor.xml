@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/n_bg"
-    android:orientation="vertical">
+    android:background="?attr/n_bg">
 
-    <include layout="@layout/view_header" />
+    <eightbitlab.com.blurview.BlurTarget
+        android:id="@+id/blurTarget"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <ScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
         android:fillViewport="true"
         android:paddingBottom="8dp"
@@ -111,15 +112,37 @@
                 android:visibility="gone" />
         </LinearLayout>
     </ScrollView>
+    </eightbitlab.com.blurview.BlurTarget>
 
-    <LinearLayout
+    <eightbitlab.com.blurview.BlurView
+        android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="16dp"
-        android:paddingTop="6dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="14dp">
+        android:layout_gravity="top">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+        <include layout="@layout/view_header" />
+            </LinearLayout>
+    </eightbitlab.com.blurview.BlurView>
+
+    <eightbitlab.com.blurview.BlurView
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp">
+
 
         <TextView
             android:id="@+id/btnKind"
@@ -149,5 +172,6 @@
             android:orientation="horizontal"
             android:paddingStart="8dp"
             android:paddingEnd="8dp" />
-    </LinearLayout>
-</LinearLayout>
+            </LinearLayout>
+    </eightbitlab.com.blurview.BlurView>
+</FrameLayout>

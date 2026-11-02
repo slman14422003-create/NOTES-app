@@ -1,23 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/n_bg"
-    android:orientation="vertical">
+    android:background="?attr/n_bg">
 
-    <include layout="@layout/view_header_large" />
-
-    <View
-        android:id="@+id/headerLine"
+    <eightbitlab.com.blurview.BlurTarget
+        android:id="@+id/blurTarget"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:alpha="0"
-        android:background="?attr/n_stroke_soft" />
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/refresh"
@@ -196,6 +186,29 @@
         </LinearLayout>
     </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </eightbitlab.com.blurview.BlurTarget>
+    <eightbitlab.com.blurview.BlurView
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+        <include layout="@layout/view_header_large" />
+
+        <View
+            android:id="@+id/headerLine"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:alpha="0"
+            android:background="?attr/n_stroke_soft" />
+            </LinearLayout>
+    </eightbitlab.com.blurview.BlurView>
+
     <LinearLayout
         android:id="@+id/overlay"
         android:layout_width="match_parent"
@@ -204,20 +217,22 @@
         android:orientation="vertical">
 
     <!-- undo bar: shown for a few seconds after moving a note to the trash / archive -->
-    <LinearLayout
+    <eightbitlab.com.blurview.BlurView
         android:id="@+id/undoBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="18dp"
         android:layout_marginEnd="18dp"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/bg_composer"
-        android:elevation="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="20dp"
-        android:paddingEnd="8dp"
-        android:visibility="gone">
+        android:layout_marginBottom="10dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="8dp"
+            android:visibility="gone">
+
 
         <TextView
             android:id="@+id/undoMsg"
@@ -240,24 +255,27 @@
             android:textColor="?attr/n_accent_text"
             android:textSize="14sp"
             android:textStyle="bold" />
-    </LinearLayout>
+            </LinearLayout>
+    </eightbitlab.com.blurview.BlurView>
 
     <!-- quick capture: a floating pill; type, press send, the note is saved (and synced) -->
-    <LinearLayout
+    <eightbitlab.com.blurview.BlurView
         android:id="@+id/composer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="14dp"
         android:layout_marginEnd="14dp"
-        android:layout_marginBottom="12dp"
-        android:background="@drawable/bg_composer"
-        android:elevation="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="6dp"
-        android:paddingTop="6dp"
-        android:paddingEnd="6dp"
-        android:paddingBottom="6dp">
+        android:layout_marginBottom="12dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="6dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="6dp">
+
 
         <ImageButton
             android:id="@+id/btnList"
@@ -298,8 +316,8 @@
             android:scaleType="center"
             android:src="@drawable/ic_send"
             android:tint="?attr/n_on_accent" />
+            </LinearLayout>
+    </eightbitlab.com.blurview.BlurView>
     </LinearLayout>
-    </LinearLayout>
-    </FrameLayout>
 
-</LinearLayout>
+</FrameLayout>
