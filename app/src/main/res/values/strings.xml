@@ -237,4 +237,21 @@
     <string name="eco_none">لا توجد تطبيقات Semo أخرى مثبّتة على هذا الهاتف</string>
     <string name="eco_show_files">إظهار في الملفات</string>
     <string name="eco_save_note">حفظ في الملاحظات</string>
+    <string name="app_icon">أيقونة التطبيق</string>
+    <string name="app_icon_note">تتغير أيقونة الشاشة الرئيسية خلال ثوانٍ قليلة.</string>
+    <string name="icon_blue">أزرق</string>
+    <string name="icon_purple">بنفسجي</string>
+    <string name="icon_green">أخضر</string>
+    <string name="icon_pink">وردي</string>
+    <string name="icon_red">أحمر</string>
+    <string name="icon_orange">برتقالي</string>
+    <string name="icon_gold">ذهبي</string>
+    <string name="icon_night">أزرق ليلي</string>
+    <string name="icon_graphite">رمادي داكن</string>
+    <string name="sec_touch">اللمس والحركة</string>
+    <string name="blur_level">مستوى البلور عند الضغط المطول وخلف النوافذ</string>
+    <string name="blur_off">بدون</string>
+    <string name="blur_sample">اضغط مطولًا هنا للمعاينة</string>
+    <string name="haptics">الاهتزاز اللمسي</string>
+    <string name="haptics_sub">اهتزاز خفيف عند الضغط المطول والاختيار</string>
 </resources>

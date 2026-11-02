@@ -237,4 +237,21 @@
     <string name="eco_none">No other Semo apps are installed on this phone</string>
     <string name="eco_show_files">Show in Files</string>
     <string name="eco_save_note">Save to Notes</string>
+    <string name="app_icon">App icon</string>
+    <string name="app_icon_note">The home screen icon changes within a few seconds.</string>
+    <string name="icon_blue">Blue</string>
+    <string name="icon_purple">Purple</string>
+    <string name="icon_green">Green</string>
+    <string name="icon_pink">Pink</string>
+    <string name="icon_red">Red</string>
+    <string name="icon_orange">Orange</string>
+    <string name="icon_gold">Gold</string>
+    <string name="icon_night">Midnight blue</string>
+    <string name="icon_graphite">Dark gray</string>
+    <string name="sec_touch">Touch &amp; motion</string>
+    <string name="blur_level">Blur strength on long press and behind dialogs</string>
+    <string name="blur_off">Off</string>
+    <string name="blur_sample">Long-press here to preview</string>
+    <string name="haptics">Haptic feedback</string>
+    <string name="haptics_sub">A light tap on long press and selections</string>
 </resources>
