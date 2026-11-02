@@ -14,6 +14,11 @@ service cloud.firestore {
           && request.auth.token.email_verified == true;
     }
 
+    // A timestamp in epoch milliseconds that is not further than one day ahead of the server clock.
+    function sane(ms) {
+      return ms is int && ms > 0 && ms <= request.time.toMillis() + 86400000;
+    }
+
     // Shape of a note document: exactly these fields, with these types and sizes.
     function validNote(d) {
       return d.keys().hasOnly(['title', 'body', 'kind', 'color', 'pinned', 'archived', 'trashed',
@@ -25,23 +30,31 @@ service cloud.firestore {
           && d.kind is int && d.kind >= 0 && d.kind <= 1
           && d.color is int && d.color >= 0 && d.color <= 20
           && d.pinned is bool && d.archived is bool && d.trashed is bool && d.purged is bool
-          && d.createdAt is int && d.createdAt > 0
-          && d.updatedAt is int && d.updatedAt >= d.createdAt
+          && sane(d.createdAt)
+          && sane(d.updatedAt) && d.updatedAt >= d.createdAt
+          // a permanently deleted note is an empty tombstone: no content can hide in it
+          && (d.purged == false || (d.title == '' && d.body == '' && d.pinned == false))
           && d.syncedAt == request.time;   // server time, set by the app with a REQUEST_TIME transform
     }
 
     match /users/{uid}/notes/{noteId} {
-      allow read: if isOwner(uid);
+      allow get: if isOwner(uid);
+
+      // listing is allowed only with an explicit page size, so one request can never pull an unbounded result
+      allow list: if isOwner(uid)
+                  && request.query.limit <= 500;
 
       allow create: if isOwner(uid)
                     && noteId.matches('[A-Za-z0-9_-]{1,64}')
                     && validNote(request.resource.data);
 
-      // creation time can never be rewritten, and a change must move updatedAt forward
+      // creation time can never be rewritten, a change must move updatedAt forward,
+      // and a tombstone can not be turned back into a live note
       allow update: if isOwner(uid)
                     && validNote(request.resource.data)
                     && request.resource.data.createdAt == resource.data.createdAt
-                    && request.resource.data.updatedAt >= resource.data.updatedAt;
+                    && request.resource.data.updatedAt >= resource.data.updatedAt
+                    && (resource.data.purged == false || request.resource.data.purged == true);
 
       // only used by "Delete all my data"; normal deletes are written as empty "purged" tombstones
       allow delete: if isOwner(uid);
