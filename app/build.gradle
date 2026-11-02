@@ -92,6 +92,7 @@ android {
 dependencies {
     // Aligns every Kotlin artifact to one version (fixes "Duplicate class kotlin.collections.jdk8...")
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.24')
+    implementation project(':blurview')
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.core:core-splashscreen:1.0.1'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'

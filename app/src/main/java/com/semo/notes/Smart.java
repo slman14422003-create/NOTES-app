@@ -165,9 +165,7 @@ public final class Smart {
     }
 
     public static void copy(Context c, Hit h) {
-        ClipboardManager cm = (ClipboardManager) c.getSystemService(Context.CLIPBOARD_SERVICE);
-        if (cm == null) return;
-        cm.setPrimaryClip(ClipData.newPlainText("note", h.kind == PHONE ? h.target() : h.text.trim()));
+        Clip.copy(c, "note", h.kind == PHONE ? h.target() : h.text.trim());
         Toast.makeText(c, R.string.copied, Toast.LENGTH_SHORT).show();
     }
 }

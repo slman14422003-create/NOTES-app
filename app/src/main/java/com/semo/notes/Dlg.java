@@ -136,6 +136,7 @@ public class Dlg extends AlertDialog.Builder {
         Context c = d.getContext();
         if (d.getWindow() != null) {
             d.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            Glass.behind(d.getWindow());
         }
         TextView title = d.findViewById(androidx.appcompat.R.id.alertTitle);
         if (title != null) {

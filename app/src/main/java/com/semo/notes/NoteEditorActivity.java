@@ -54,6 +54,7 @@ public class NoteEditorActivity extends SmoothActivity {
     private final Runnable autosave = () -> saveNow(false);
     private boolean binding;
     private View rootView;
+    private eightbitlab.com.blurview.BlurView glassTop, glassBottom;
     private int pageColor;
     private boolean colorReady;
 
@@ -77,6 +78,12 @@ public class NoteEditorActivity extends SmoothActivity {
         bodyEt = findViewById(R.id.body);
         page = findViewById(R.id.page);
         rootView = findViewById(R.id.root);
+        glassTop = findViewById(R.id.topBar);
+        glassBottom = findViewById(R.id.bottomBar);
+        android.widget.ScrollView editorScroll = findViewById(R.id.scroll);
+        eightbitlab.com.blurview.BlurTarget editorTarget = findViewById(R.id.blurTarget);
+        Glass.bindTop(glassTop, editorTarget, editorScroll);
+        Glass.bindBottom(glassBottom, editorTarget, editorScroll);
         itemsBox = findViewById(R.id.items);
         palette = findViewById(R.id.palette);
         meta = findViewById(R.id.meta);
@@ -209,6 +216,8 @@ public class NoteEditorActivity extends SmoothActivity {
         final int to = note.color == 0 ? Ui.color(this, R.attr.n_bg) : Palette.card(this, note.color);
         if (!colorReady || !Motion.enabled(this) || to == pageColor) {
             rootView.setBackgroundColor(to);
+            Glass.base(glassTop, to, Glass.BAR_ALPHA);
+            Glass.base(glassBottom, to, Glass.BAR_ALPHA);
             pageColor = to;
             colorReady = true;
             return;
@@ -219,7 +228,12 @@ public class NoteEditorActivity extends SmoothActivity {
                 new android.animation.ArgbEvaluator(), from, to);
         va.setDuration(320);
         va.setInterpolator(new android.view.animation.DecelerateInterpolator(1.5f));
-        va.addUpdateListener(an -> rootView.setBackgroundColor((int) an.getAnimatedValue()));
+        va.addUpdateListener(an -> {
+            int cv = (int) an.getAnimatedValue();
+            rootView.setBackgroundColor(cv);
+            Glass.base(glassTop, cv, Glass.BAR_ALPHA);
+            Glass.base(glassBottom, cv, Glass.BAR_ALPHA);
+        });
         va.start();
     }
 

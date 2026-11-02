@@ -160,6 +160,8 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
                     }
                 });
 
+        setupGlass();
+
         gridPinned = findViewById(R.id.gridPinned);
         gridAll = findViewById(R.id.gridAll);
         chipRow = findViewById(R.id.chipRow);
@@ -573,6 +575,26 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         }
         // the lists were rebuilt: put the scroll position back so a sync never makes the page jump
         if (sameView && keepY > 0) scrollView.post(() -> scrollView.scrollTo(0, keepY));
+    }
+
+    // ------------------------------------------------------------------ frosted glass
+
+    private eightbitlab.com.blurview.BlurView glassTop;
+
+    /** iOS-style translucent header + floating bars: the notes scroll underneath and show through, blurred. */
+    private void setupGlass() {
+        eightbitlab.com.blurview.BlurTarget target = findViewById(R.id.blurTarget);
+        glassTop = findViewById(R.id.topBar);
+        Glass.setup(glassTop, target, R.attr.n_bg, Glass.BAR_ALPHA, 0, false);
+        Glass.setup(findViewById(R.id.composer), target, R.attr.n_surface, Glass.PILL_ALPHA, 28, true);
+        Glass.setup(findViewById(R.id.undoBar), target, R.attr.n_surface, Glass.PILL_ALPHA, 28, true);
+        glassTop.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            int h = b - t;
+            if (h > 0 && scrollView.getPaddingTop() != h) {
+                scrollView.setPadding(0, h, 0, scrollView.getPaddingBottom());
+                refresh.setProgressViewOffset(false, h, h + Ui.dp(this, 56));
+            }
+        });
     }
 
     // ------------------------------------------------------------------ view mode

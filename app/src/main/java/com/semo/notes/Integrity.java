@@ -24,28 +24,49 @@ public final class Integrity {
     private Integrity() {
     }
 
-    public static final int OK = 0, BAD_SIGNATURE = 1, DEBUGGABLE = 2, DEBUGGER = 3;
+    public static final int OK = 0, BAD_SIGNATURE = 1, DEBUGGABLE = 2, DEBUGGER = 3, HOOKED = 4;
 
     private static volatile int state = -1;
 
     /** Evaluates once per process (the debugger check is repeated on every call). */
     public static synchronized int state(Context c) {
         if (BuildConfig.DEBUG) return OK; // your own debug builds are never blocked
-        if (state > OK) return state;
-        int s = OK;
-        ApplicationInfo ai = c.getApplicationInfo();
-        if ((ai.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
-            s = DEBUGGABLE;
-        } else {
-            String expected = Secrets.certSha256();
-            if (!expected.isEmpty()) {
-                String actual = signerHash(c, "SHA-256");
-                if (actual.isEmpty() || !expected.equalsIgnoreCase(actual)) s = BAD_SIGNATURE;
+        if (state < 0) {
+            int s = OK;
+            ApplicationInfo ai = c.getApplicationInfo();
+            if ((ai.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+                s = DEBUGGABLE;
+            } else {
+                String expected = Secrets.certSha256();
+                if (!expected.isEmpty()) {
+                    String actual = signerHash(c, "SHA-256");
+                    if (actual.isEmpty() || !expected.equalsIgnoreCase(actual)) s = BAD_SIGNATURE;
+                }
+                if (s == OK && hooked()) s = HOOKED;
             }
+            state = s;
         }
-        state = s;
-        if (s == OK && (Debug.isDebuggerConnected() || Debug.waitingForDebugger())) return DEBUGGER;
-        return s;
+        if (state > OK) return state;
+        if (Debug.isDebuggerConnected() || Debug.waitingForDebugger()) return DEBUGGER;
+        return OK;
+    }
+
+    /** True when an instrumentation framework (Frida, Xposed / LSPosed, Substrate) is loaded into this process. */
+    private static boolean hooked() {
+        try {
+            Class.forName("de.robv.android.xposed.XposedBridge");
+            return true;
+        } catch (Throwable ignored) {
+        }
+        try (java.io.BufferedReader r = new java.io.BufferedReader(new java.io.FileReader("/proc/self/maps"))) {
+            String l;
+            while ((l = r.readLine()) != null) {
+                String s = l.toLowerCase(Locale.US);
+                if (s.contains("frida") || s.contains("gum-js") || s.contains("xposed") || s.contains("substrate")) return true;
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
     }
 
     public static boolean ok(Context c) {

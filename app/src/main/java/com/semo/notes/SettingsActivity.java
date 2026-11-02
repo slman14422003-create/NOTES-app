@@ -46,6 +46,7 @@ public class SettingsActivity extends SmoothActivity implements Sync.Listener {
         super.onCreate(savedInstanceState);
         if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_settings);
+        Glass.glassScreen(this);
         db = Db.get(this);
         ((TextView) findViewById(R.id.title)).setText(R.string.settings);
         findViewById(R.id.subtitle).setVisibility(View.GONE);
@@ -141,6 +142,35 @@ public class SettingsActivity extends SmoothActivity implements Sync.Listener {
             else getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE);
         });
         content.addView(secure.view);
+
+        Ui.Toggle lock = Ui.toggle(this, content, R.string.app_lock, R.string.app_lock_sub, Prefs.appLock(this));
+        lock.onChange((b, on) -> {
+            if (on) {
+                android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+                if (km == null || !km.isDeviceSecure()) {
+                    android.widget.Toast.makeText(this, R.string.lock_need_screen_lock, android.widget.Toast.LENGTH_LONG).show();
+                    b.setChecked(false);
+                    return;
+                }
+                AppLock.unlock();
+            }
+            Prefs.setAppLock(this, on);
+        });
+        content.addView(lock.view);
+
+        final long[] delays = {0L, 30_000L, 60_000L, 300_000L};
+        final int[] delayNames = {R.string.lock_now, R.string.lock_30s, R.string.lock_1m, R.string.lock_5m};
+        int di = 0;
+        for (int i = 0; i < delays.length; i++) if (delays[i] == Prefs.lockDelay(this)) di = i;
+        Row lockAfter = new Row(R.drawable.ic_lock, false, getString(R.string.lock_after), getString(delayNames[di]), false, true);
+        content.addView(Ui.rowView(this, content, lockAfter, v -> {
+            CharSequence[] items = new CharSequence[delays.length];
+            for (int i = 0; i < delays.length; i++) items[i] = getString(delayNames[i]);
+            new Dlg(this).setTitle(R.string.lock_after).setItems(items, (d, which) -> {
+                Prefs.setLockDelay(this, delays[which]);
+                recreate();
+            }).show();
+        }));
 
         Row wipe = new Row(R.drawable.ic_trash_sweep, false, getString(R.string.delete_all_data),
                 getString(cloud ? R.string.delete_all_data_sub : R.string.delete_local_data_sub), false, false).tint(Ui.color(this, R.attr.n_bad));

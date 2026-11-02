@@ -82,8 +82,7 @@ public final class NoteActions {
     }
 
     public static void copy(Context c, Note n) {
-        ClipboardManager cm = (ClipboardManager) c.getSystemService(Context.CLIPBOARD_SERVICE);
-        if (cm != null) cm.setPrimaryClip(ClipData.newPlainText(n.title, shareText(n)));
+        Clip.copy(c, n.title, shareText(n));
         Toast.makeText(c, R.string.copied, Toast.LENGTH_SHORT).show();
     }
 

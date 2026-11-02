@@ -44,6 +44,7 @@ public class AboutActivity extends SmoothActivity {
         super.onCreate(savedInstanceState);
         if (Integrity.enforce(this)) return;
         setContentView(R.layout.activity_settings);
+        Glass.glassScreen(this);
         ((TextView) findViewById(R.id.title)).setText(R.string.about_title);
         subtitle = findViewById(R.id.subtitle);
         findViewById(R.id.btnBack).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());

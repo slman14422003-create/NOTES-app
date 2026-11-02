@@ -36,7 +36,7 @@ final class Motion {
                 if (enabled(view.getContext())) {
                     pressed = new WeakReference<>(view);
                     view.animate().cancel();
-                    view.animate().scaleX(0.96f).scaleY(0.96f).setDuration(90).start();
+                    view.animate().scaleX(0.96f).scaleY(0.96f).setDuration(80).start();
                 }
             } else if (a == MotionEvent.ACTION_UP || a == MotionEvent.ACTION_CANCEL) {
                 back(view);
@@ -49,8 +49,8 @@ final class Motion {
         v.animate().cancel();
         SpringAnimation x = new SpringAnimation(v, DynamicAnimation.SCALE_X, 1f);
         SpringAnimation y = new SpringAnimation(v, DynamicAnimation.SCALE_Y, 1f);
-        x.getSpring().setStiffness(SpringForce.STIFFNESS_MEDIUM).setDampingRatio(0.55f);
-        y.getSpring().setStiffness(SpringForce.STIFFNESS_MEDIUM).setDampingRatio(0.55f);
+        x.getSpring().setStiffness(SpringForce.STIFFNESS_MEDIUM).setDampingRatio(0.6f);
+        y.getSpring().setStiffness(SpringForce.STIFFNESS_MEDIUM).setDampingRatio(0.6f);
         x.start();
         y.start();
     }
@@ -72,7 +72,7 @@ final class Motion {
         v.animate().cancel();
         v.setAlpha(0f);
         v.setTranslationY(14f * d);
-        v.animate().alpha(1f).translationY(0f).setStartDelay(60L * Math.max(0, index)).setDuration(380)
+        v.animate().alpha(1f).translationY(0f).setStartDelay(35L * Math.min(8, Math.max(0, index))).setDuration(320)
                 .setInterpolator(new DecelerateInterpolator(2f)).start();
     }
 

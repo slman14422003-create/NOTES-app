@@ -38,8 +38,8 @@ import java.util.concurrent.Executors;
 public class LoginActivity extends SmoothActivity {
     /** Opened from inside the app: just close when done instead of starting the home screen. */
     public static final String EXTRA_FROM_APP = "from_app";
-    private static final long SPLASH_MS = 1500;      // minimum time the mark is shown
-    private static final long SPLASH_MAX_MS = 2300;  // longest the splash waits for the preload / account sync
+    private static final long SPLASH_MS = 450;      // minimum time the mark is shown
+    private static final long SPLASH_MAX_MS = 1100;  // longest the splash waits for the preload / account sync
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -66,7 +66,7 @@ public class LoginActivity extends SmoothActivity {
         // ChatGPT-style exit: the mark holds, then fades out while growing very slightly
         splash.setOnExitAnimationListener(p -> {
             View v = p.getView();
-            v.animate().alpha(0f).scaleX(1.06f).scaleY(1.06f).setDuration(320)
+            v.animate().alpha(0f).scaleX(1.06f).scaleY(1.06f).setDuration(180)
                     .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
                     .withEndAction(p::remove).start();
         });
@@ -103,7 +103,7 @@ public class LoginActivity extends SmoothActivity {
     private void goHomeWhenReady(final long start) {
         ui.postDelayed(() -> {
             if (isFinishing()) return;
-            if (holdSplash(start)) {
+            if (holdSplash(start) || AppLock.needs(this)) {
                 goHomeWhenReady(start);
                 return;
             }

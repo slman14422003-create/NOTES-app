@@ -45,6 +45,18 @@ public abstract class SmoothActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        AppLock.guard(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AppLock.reveal(this);
+    }
+
+    @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         // fresh launches only: a recreate (theme or language change) must not flash
@@ -66,6 +78,7 @@ public abstract class SmoothActivity extends AppCompatActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (!hasFocus) Motion.release(); // a dialog / menu opened on top: let go of the pressed view
+        else AppLock.reveal(this);
     }
 
     @Override

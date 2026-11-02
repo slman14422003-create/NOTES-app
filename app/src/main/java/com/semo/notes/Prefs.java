@@ -188,6 +188,23 @@ public final class Prefs {
         sp(c).edit().putBoolean("secure", on).apply();
     }
 
+    /** App lock: phone fingerprint / face / PIN is asked when the app opens and after the chosen time in the background. */
+    public static boolean appLock(Context c) {
+        return sp(c).getBoolean("appLock", false);
+    }
+
+    public static void setAppLock(Context c, boolean on) {
+        sp(c).edit().putBoolean("appLock", on).apply();
+    }
+
+    public static long lockDelay(Context c) {
+        return sp(c).getLong("lockDelay", 0L);
+    }
+
+    public static void setLockDelay(Context c, long ms) {
+        sp(c).edit().putLong("lockDelay", ms).apply();
+    }
+
     public static boolean autoSync(Context c) {
         return sp(c).getBoolean("autoSync", true);
     }

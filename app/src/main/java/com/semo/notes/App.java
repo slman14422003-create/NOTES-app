@@ -34,9 +34,19 @@ public class App extends Application {
                 View root = a.getWindow().getDecorView();
                 // ignore touches while another window (an overlay) covers the app: tapjacking protection
                 root.setFilterTouchesWhenObscured(true);
+                AppLock.started(a);
+                if (Build.VERSION.SDK_INT >= 31) {
+                    try {
+                        a.getWindow().setHideOverlayWindows(true); // other apps can not draw over the notes
+                    } catch (Throwable ignored) {
+                    }
+                }
                 // optional privacy mode: no screenshots, blank preview in the recent-apps list
-                if (Prefs.secureScreen(a)) a.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+                boolean lock = AppLock.enabled(a);
+                boolean secure = Prefs.secureScreen(a) || (lock && Build.VERSION.SDK_INT < 33);
+                if (secure) a.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
                 else a.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+                if (Build.VERSION.SDK_INT >= 33) a.setRecentsScreenshotEnabled(!lock);
                 if (Build.VERSION.SDK_INT < 35) return;
                 View content = a.findViewById(android.R.id.content);
                 if (content == null || content.getTag(R.id.tag_insets) != null) return;
@@ -54,7 +64,7 @@ public class App extends Application {
                 ThemeKit.refreshIfChanged(a); // palette / day-night changed while this screen was in the back
             }
             @Override public void onActivityPaused(Activity a) { }
-            @Override public void onActivityStopped(Activity a) { }
+            @Override public void onActivityStopped(Activity a) { AppLock.stopped(); }
             @Override public void onActivitySaveInstanceState(Activity a, Bundle b) { }
             @Override public void onActivityDestroyed(Activity a) { }
         });
