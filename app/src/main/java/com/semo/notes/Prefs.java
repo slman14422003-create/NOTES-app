@@ -179,6 +179,24 @@ public final class Prefs {
         sp(c).edit().putString("themeAccent", v).apply();
     }
 
+    /** Strength of the blur behind the long-press menu and dialogs: 0 (off) to 100. */
+    public static int blurLevel(Context c) {
+        return sp(c).getInt("blurLevel", 50);
+    }
+
+    public static void setBlurLevel(Context c, int v) {
+        sp(c).edit().putInt("blurLevel", Math.max(0, Math.min(100, v))).apply();
+    }
+
+    /** Light taps (vibration) on long-press, selections and sliders. */
+    public static boolean haptics(Context c) {
+        return sp(c).getBoolean("haptics", true);
+    }
+
+    public static void setHaptics(Context c, boolean on) {
+        sp(c).edit().putBoolean("haptics", on).apply();
+    }
+
     /** Blocks screenshots and hides the app content in the recent-apps switcher. */
     public static boolean secureScreen(Context c) {
         return sp(c).getBoolean("secure", false);

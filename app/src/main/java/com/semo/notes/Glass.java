@@ -1,5 +1,8 @@
 package com.semo.notes;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -9,6 +12,7 @@ import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ScrollView;
 
 import eightbitlab.com.blurview.BlurTarget;
@@ -77,18 +81,68 @@ final class Glass {
         bindTop(bar, target, sv);
     }
 
-    /** Blurs everything behind a dialog window (the iOS alert backdrop). No-op below Android 12 or when blur is off. */
+    /** True when the platform can blur what is behind a window and the user has not switched the blur off. */
+    static boolean behindSupported(Context c) {
+        if (Build.VERSION.SDK_INT < 31 || Prefs.blurLevel(c) <= 0) return false;
+        WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
+        return wm != null && wm.isCrossWindowBlurEnabled();
+    }
+
+    /** Blur radius in pixels for a 0..100 level (100 is about 50dp, the strength of an iOS context menu backdrop). */
+    static int radiusPx(Context c, int level) {
+        return Ui.dp(c, Math.round(level * 0.5f));
+    }
+
+    /**
+     * Fades the blur and the dim behind a window in or out. Blur strength follows the level chosen in the settings;
+     * where window blur is not available only the dim is animated.
+     */
+    static ValueAnimator animateBehind(final Window w, final float maxDim, final boolean in, final Runnable end) {
+        final Context c = w.getContext();
+        final boolean blur = behindSupported(c);
+        final int maxR = blur ? radiusPx(c, Prefs.blurLevel(c)) : 0;
+        if (blur) w.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+        w.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        final ValueAnimator a = ValueAnimator.ofFloat(in ? 0f : 1f, in ? 1f : 0f);
+        a.setDuration(in ? 340 : 210);
+        a.setInterpolator(new DecelerateInterpolator(1.6f));
+        a.addUpdateListener(u -> {
+            float f = (float) u.getAnimatedValue();
+            try {
+                WindowManager.LayoutParams p = w.getAttributes();
+                p.dimAmount = maxDim * f;
+                if (blur && Build.VERSION.SDK_INT >= 31) p.setBlurBehindRadius(Math.round(maxR * f));
+                w.setAttributes(p);
+            } catch (Throwable t) {
+                a.cancel();
+            }
+        });
+        a.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (end != null) end.run();
+            }
+        });
+        a.start();
+        return a;
+    }
+
+    /** Blurs everything behind a dialog window (the iOS alert backdrop), fading in. */
     static void behind(Window w) {
-        if (w == null || Build.VERSION.SDK_INT < 31) return;
+        if (w == null || !behindSupported(w.getContext())) return;
         try {
-            Context c = w.getContext();
-            WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
-            if (wm == null || !wm.isCrossWindowBlurEnabled()) return;
-            w.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
-            WindowManager.LayoutParams p = w.getAttributes();
-            p.setBlurBehindRadius(Ui.dp(c, 18));
-            p.dimAmount = 0.30f;
-            w.setAttributes(p);
+            final ValueAnimator a = animateBehind(w, 0.30f, true, null);
+            w.getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    a.removeAllListeners();
+                    a.cancel();
+                }
+            });
         } catch (Throwable ignored) {
         }
     }

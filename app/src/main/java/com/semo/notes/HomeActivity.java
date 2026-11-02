@@ -726,8 +726,9 @@ public class HomeActivity extends SmoothActivity implements Sync.Listener {
         Ui.press(this, card);
         card.setOnClickListener(v -> startActivity(new Intent(this, NoteEditorActivity.class)
                 .putExtra(NoteEditorActivity.EXTRA_ID, n.id)));
+        card.setHapticFeedbackEnabled(false);
         card.setOnLongClickListener(v -> {
-            NoteActions.menu(this, n, false, this::reload);
+            NoteActions.lift(this, v, n, this::reload);
             return true;
         });
 

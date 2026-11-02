@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -106,47 +107,51 @@ public final class NoteActions {
                 .show();
     }
 
-    /** The options menu of a note (long-press on a card, or the "more" button in the editor). */
-    public static void menu(Activity a, Note n, boolean inEditor, Runnable after) {
-        List<CharSequence> labels = new ArrayList<>();
-        List<Runnable> acts = new ArrayList<>();
+    /** The actions offered for a note, with their icons; shared by the lift menu and the plain dialog. */
+    public static List<LiftMenu.Item> items(Activity a, Note n, boolean inEditor, Runnable after) {
+        List<LiftMenu.Item> out = new ArrayList<>();
         Runnable done = () -> {
             if (after != null) after.run();
         };
         if (n.trashed) {
-            labels.add(a.getString(R.string.restore));
-            acts.add(() -> {
+            out.add(new LiftMenu.Item(a.getString(R.string.restore), R.drawable.ic_undo, false, () -> {
                 restore(a, n);
                 done.run();
-            });
-            labels.add(a.getString(R.string.delete_forever));
-            acts.add(() -> confirmDeleteForever(a, n, done));
+            }));
+            out.add(new LiftMenu.Item(a.getString(R.string.delete_forever), R.drawable.ic_delete, true,
+                    () -> confirmDeleteForever(a, n, done)));
         } else {
             if (!inEditor) {
-                labels.add(a.getString(n.pinned ? R.string.unpin : R.string.pin));
-                acts.add(() -> {
+                out.add(new LiftMenu.Item(a.getString(n.pinned ? R.string.unpin : R.string.pin), R.drawable.ic_pin, false, () -> {
                     togglePin(a, n);
                     done.run();
-                });
+                }));
             }
-            labels.add(a.getString(n.archived ? R.string.unarchive : R.string.archive));
-            acts.add(() -> {
+            out.add(new LiftMenu.Item(a.getString(n.archived ? R.string.unarchive : R.string.archive), R.drawable.ic_archive, false, () -> {
                 toggleArchive(a, n);
                 done.run();
-            });
-            labels.add(a.getString(R.string.copy));
-            acts.add(() -> copy(a, n));
-            labels.add(a.getString(R.string.share));
-            acts.add(() -> share(a, n));
-            labels.add(a.getString(R.string.move_to_trash));
-            acts.add(() -> {
+            }));
+            out.add(new LiftMenu.Item(a.getString(R.string.copy), R.drawable.ic_copy, false, () -> copy(a, n)));
+            out.add(new LiftMenu.Item(a.getString(R.string.share), R.drawable.ic_share, false, () -> share(a, n)));
+            out.add(new LiftMenu.Item(a.getString(R.string.move_to_trash), R.drawable.ic_delete, true, () -> {
                 trash(a, n);
                 Toast.makeText(a, R.string.moved_to_trash, Toast.LENGTH_SHORT).show();
                 done.run();
-            });
+            }));
         }
-        new Dlg(a)
-                .setItems(labels.toArray(new CharSequence[0]), (d, which) -> acts.get(which).run())
-                .show();
+        return out;
+    }
+
+    /** The options menu of a note in the editor ("more" button): a plain list dialog. */
+    public static void menu(Activity a, Note n, boolean inEditor, Runnable after) {
+        final List<LiftMenu.Item> items = items(a, n, inEditor, after);
+        CharSequence[] labels = new CharSequence[items.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = items.get(i).label;
+        new Dlg(a).setItems(labels, (d, which) -> items.get(which).action.run()).show();
+    }
+
+    /** Long press on a card: blur the page, lift the card and show the action menu next to it. */
+    public static void lift(Activity a, View card, Note n, Runnable after) {
+        LiftMenu.show(a, card, items(a, n, false, after));
     }
 }

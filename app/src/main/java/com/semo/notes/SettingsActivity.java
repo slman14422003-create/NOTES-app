@@ -127,6 +127,19 @@ public class SettingsActivity extends SmoothActivity implements Sync.Listener {
         // appearance
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_appearance)));
         content.addView(appearanceCard());
+        Row iconRow = new Row(R.drawable.ic_app_icon, false, getString(R.string.app_icon),
+                getString(IconKit.current(this).name), false, true);
+        content.addView(Ui.rowView(this, content, iconRow, v -> startActivity(new Intent(this, AppIconActivity.class))));
+
+        // touch and motion
+        content.addView(Ui.sectionTitle(this, getString(R.string.sec_touch)));
+        content.addView(blurCard());
+        Ui.Toggle haptic = Ui.toggle(this, content, R.string.haptics, R.string.haptics_sub, Prefs.haptics(this));
+        haptic.onChange((b, on) -> {
+            Prefs.setHaptics(this, on);
+            if (on) Motion.tick(b);
+        });
+        content.addView(haptic.view);
 
         // language
         content.addView(Ui.sectionTitle(this, getString(R.string.sec_language)));
@@ -317,6 +330,94 @@ public class SettingsActivity extends SmoothActivity implements Sync.Listener {
         return card;
     }
 
+    /** Blur strength slider plus a sample card: long-press it to feel the lift and blur at the chosen level. */
+    private View blurCard() {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackgroundResource(R.drawable.bg_card);
+        int pad = Ui.dp(this, 18);
+        card.setPadding(pad, Ui.dp(this, 16), pad, Ui.dp(this, 16));
+        LinearLayout.LayoutParams cl = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cl.setMargins(Ui.dp(this, 14), Ui.dp(this, 4), Ui.dp(this, 14), Ui.dp(this, 4));
+        card.setLayoutParams(cl);
+
+        card.addView(caption(R.string.blur_level));
+
+        LinearLayout line = new LinearLayout(this);
+        line.setOrientation(LinearLayout.HORIZONTAL);
+        line.setGravity(Gravity.CENTER_VERTICAL);
+        final TextView value = new TextView(this);
+        value.setTextSize(14);
+        value.setTextColor(Ui.color(this, R.attr.n_text_secondary));
+        value.setGravity(Gravity.CENTER);
+        final android.widget.SeekBar bar = new android.widget.SeekBar(this);
+        bar.setMax(100);
+        bar.setProgress(Prefs.blurLevel(this));
+        int accent = Ui.color(this, R.attr.n_accent_text);
+        bar.setProgressTintList(android.content.res.ColorStateList.valueOf(accent));
+        bar.setThumbTintList(android.content.res.ColorStateList.valueOf(accent));
+        bar.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(Ui.color(this, R.attr.n_stroke)));
+        value.setText(blurLabel(bar.getProgress()));
+        bar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            private int lastStep = -1;
+
+            @Override
+            public void onProgressChanged(android.widget.SeekBar b, int p, boolean fromUser) {
+                value.setText(blurLabel(p));
+                if (!fromUser) return;
+                Prefs.setBlurLevel(SettingsActivity.this, p);
+                int step = p / 10;
+                if (step != lastStep) {
+                    lastStep = step;
+                    Motion.tick(b);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(android.widget.SeekBar b) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(android.widget.SeekBar b) {
+            }
+        });
+        line.addView(bar, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        line.addView(value, new LinearLayout.LayoutParams(Ui.dp(this, 52), ViewGroup.LayoutParams.WRAP_CONTENT));
+        card.addView(line);
+
+        final TextView sample = new TextView(this);
+        sample.setText(R.string.blur_sample);
+        sample.setTextSize(14);
+        sample.setGravity(Gravity.CENTER);
+        sample.setTextColor(Ui.color(this, R.attr.n_text_secondary));
+        GradientDrawable sg = new GradientDrawable();
+        sg.setCornerRadius(Ui.dp(this, 20));
+        sg.setColor(Ui.color(this, R.attr.n_bg));
+        sg.setStroke(Ui.dp(this, 1), Ui.color(this, R.attr.n_stroke_soft));
+        sample.setBackground(sg);
+        sample.setPadding(Ui.dp(this, 14), Ui.dp(this, 22), Ui.dp(this, 14), Ui.dp(this, 22));
+        LinearLayout.LayoutParams sl = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        sl.topMargin = Ui.dp(this, 16);
+        Ui.press(this, sample);
+        sample.setHapticFeedbackEnabled(false);
+        sample.setOnLongClickListener(v -> {
+            List<LiftMenu.Item> demo = new java.util.ArrayList<>();
+            demo.add(new LiftMenu.Item(getString(R.string.copy), R.drawable.ic_copy, false, null));
+            demo.add(new LiftMenu.Item(getString(R.string.share), R.drawable.ic_share, false, null));
+            demo.add(new LiftMenu.Item(getString(R.string.move_to_trash), R.drawable.ic_delete, true, null));
+            LiftMenu.show(this, v, demo);
+            return true;
+        });
+        card.addView(sample, sl);
+        return card;
+    }
+
+    private String blurLabel(int p) {
+        return p <= 0 ? getString(R.string.blur_off) : p + "%";
+    }
+
     private TextView caption(int res) {
         TextView t = new TextView(this);
         t.setText(res);
@@ -393,7 +494,9 @@ public class SettingsActivity extends SmoothActivity implements Sync.Listener {
                     n.trashed = o.optBoolean("trashed", false);
                     n.createdAt = o.optLong("createdAt", System.currentTimeMillis());
                     n.updatedAt = o.optLong("updatedAt", n.createdAt);
-                    if (n.createdAt <= 0) n.createdAt = System.currentTimeMillis();
+                    final long nowMs = System.currentTimeMillis();
+                    if (n.createdAt <= 0 || n.createdAt > nowMs) n.createdAt = nowMs; // the cloud rules reject future times
+                    if (n.updatedAt > nowMs) n.updatedAt = nowMs;
                     if (n.updatedAt < n.createdAt) n.updatedAt = n.createdAt; // required by the cloud rules
                     if (n.isEmpty()) continue;
                     Note local = db.get(n.id);

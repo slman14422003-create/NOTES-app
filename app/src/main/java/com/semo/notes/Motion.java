@@ -109,4 +109,18 @@ final class Motion {
         a.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, R.anim.act_open_enter, R.anim.act_open_exit);
         a.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, R.anim.act_close_enter, R.anim.act_close_exit);
     }
+
+    /** iOS-like light tap on the given view; respects the in-app haptics switch. */
+    static void tick(View v) {
+        if (v == null || !Prefs.haptics(v.getContext())) return;
+        int k = Build.VERSION.SDK_INT >= 30 ? android.view.HapticFeedbackConstants.CONFIRM
+                : android.view.HapticFeedbackConstants.VIRTUAL_KEY;
+        v.performHapticFeedback(k);
+    }
+
+    /** Stronger tap used when a long press is recognised. */
+    static void thud(View v) {
+        if (v == null || !Prefs.haptics(v.getContext())) return;
+        v.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+    }
 }
