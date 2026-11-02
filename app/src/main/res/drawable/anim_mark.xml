@@ -6,8 +6,8 @@
     <target android:name="mark">
         <aapt:attr name="android:animation">
             <set android:ordering="together">
-                <objectAnimator android:duration="820" android:interpolator="@android:interpolator/overshoot" android:propertyName="scaleX" android:valueFrom="0.6" android:valueTo="1" android:valueType="floatType" />
-                <objectAnimator android:duration="820" android:interpolator="@android:interpolator/overshoot" android:propertyName="scaleY" android:valueFrom="0.6" android:valueTo="1" android:valueType="floatType" />
+                <objectAnimator android:duration="480" android:interpolator="@android:interpolator/overshoot" android:propertyName="scaleX" android:valueFrom="0.6" android:valueTo="1" android:valueType="floatType" />
+                <objectAnimator android:duration="480" android:interpolator="@android:interpolator/overshoot" android:propertyName="scaleY" android:valueFrom="0.6" android:valueTo="1" android:valueType="floatType" />
             </set>
         </aapt:attr>
     </target>
@@ -15,7 +15,7 @@
     <target android:name="p0">
         <aapt:attr name="android:animation">
             <objectAnimator
-                android:duration="650"
+                android:duration="380"
                 android:interpolator="@android:interpolator/fast_out_slow_in"
                 android:propertyName="trimPathEnd"
                 android:startOffset="0"
@@ -28,10 +28,10 @@
     <target android:name="p1">
         <aapt:attr name="android:animation">
             <objectAnimator
-                android:duration="650"
+                android:duration="380"
                 android:interpolator="@android:interpolator/fast_out_slow_in"
                 android:propertyName="trimPathEnd"
-                android:startOffset="120"
+                android:startOffset="60"
                 android:valueFrom="0"
                 android:valueTo="1"
                 android:valueType="floatType" />
@@ -41,10 +41,10 @@
     <target android:name="p2">
         <aapt:attr name="android:animation">
             <objectAnimator
-                android:duration="650"
+                android:duration="380"
                 android:interpolator="@android:interpolator/fast_out_slow_in"
                 android:propertyName="trimPathEnd"
-                android:startOffset="200"
+                android:startOffset="110"
                 android:valueFrom="0"
                 android:valueTo="1"
                 android:valueType="floatType" />
@@ -54,10 +54,10 @@
     <target android:name="p3">
         <aapt:attr name="android:animation">
             <objectAnimator
-                android:duration="650"
+                android:duration="380"
                 android:interpolator="@android:interpolator/fast_out_slow_in"
                 android:propertyName="trimPathEnd"
-                android:startOffset="280"
+                android:startOffset="160"
                 android:valueFrom="0"
                 android:valueTo="1"
                 android:valueType="floatType" />

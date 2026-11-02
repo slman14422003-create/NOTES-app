@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android"
-    android:interpolator="@interpolator/emphasized_accelerate">
-    <alpha android:duration="110" android:fromAlpha="1" android:toAlpha="0" />
-    <scale
-        android:duration="260"
-        android:fromXScale="1"
-        android:fromYScale="1"
-        android:pivotX="50%"
-        android:pivotY="50%"
-        android:toXScale="1.04"
-        android:toYScale="1.04" />
+    android:interpolator="@interpolator/ios_curve">
+    <translate
+        android:duration="380"
+        android:fromXDelta="0%"
+        android:toXDelta="-28%" />
+    <alpha android:duration="380" android:fromAlpha="1" android:toAlpha="0.85" />
 </set>

@@ -33,15 +33,28 @@ final class Vault {
         KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
         ks.load(null);
         if (!ks.containsAlias(ALIAS)) {
+            if (android.os.Build.VERSION.SDK_INT >= 28) {
+                try {
+                    KeyGenerator sb = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+                    sb.init(spec().setIsStrongBoxBacked(true).build()); // dedicated security chip when the phone has one
+                    return sb.generateKey();
+                } catch (Throwable ignored) {
+                    // no StrongBox on this phone: the normal hardware-backed Keystore is used
+                }
+            }
             KeyGenerator g = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-            g.init(new KeyGenParameterSpec.Builder(ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setKeySize(256)
-                    .build());
+            g.init(spec().build());
             return g.generateKey();
         }
         return (SecretKey) ks.getKey(ALIAS, null);
+    }
+
+    private static KeyGenParameterSpec.Builder spec() {
+        return new KeyGenParameterSpec.Builder(ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setRandomizedEncryptionRequired(true)
+                .setKeySize(256);
     }
 
     /** Returns "" when encryption is impossible (the secret is then simply not persisted). */
