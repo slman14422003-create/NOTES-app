@@ -101,6 +101,8 @@ final class Glass {
     /** Removes the blur from the screen content. */
     static void clearContent(Activity a) {
         if (a == null || Build.VERSION.SDK_INT < 31) return;
+        contentFraction = 0f;
+        contentStep = -1;
         a.getWindow().getDecorView().setRenderEffect(null);
     }
 
@@ -115,25 +117,44 @@ final class Glass {
             if (end != null) end.run();
             return null;
         }
-        final View v = a.getWindow().getDecorView();
-        final float max = contentRadiusPx(a, level);
         final ValueAnimator va = ValueAnimator.ofFloat(in ? 0f : 1f, in ? 1f : 0f);
         va.setDuration(in ? 340 : 210);
         va.setInterpolator(new DecelerateInterpolator(1.6f));
-        va.addUpdateListener(u -> {
-            float r = max * (float) u.getAnimatedValue();
-            if (r < 0.5f) v.setRenderEffect(null);
-            else v.setRenderEffect(RenderEffect.createBlurEffect(r, r, Shader.TileMode.CLAMP));
-        });
+        va.addUpdateListener(u -> setContentFraction(a, (float) u.getAnimatedValue()));
         va.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                if (!in) v.setRenderEffect(null);
+                if (!in) clearContent(a);
                 if (end != null) end.run();
             }
         });
         va.start();
         return va;
+    }
+
+    private static float contentFraction;
+    private static int contentStep = -1;
+
+    /** Current blur amount of the screen content, 0..1. */
+    static float contentFraction() {
+        return contentFraction;
+    }
+
+    /** Sets the blur of the screen content to a fraction (0..1) of the chosen strength; the radius is stepped to avoid rebuilding the effect every frame. */
+    static void setContentFraction(Activity a, float f) {
+        if (a == null || Build.VERSION.SDK_INT < 31) return;
+        contentFraction = f;
+        float r = contentRadiusPx(a, Prefs.blurLevel(a)) * f;
+        int step = Math.round(r / 1.5f);
+        if (step == contentStep) return;
+        contentStep = step;
+        View v = a.getWindow().getDecorView();
+        if (step <= 0) {
+            v.setRenderEffect(null);
+        } else {
+            float rr = step * 1.5f;
+            v.setRenderEffect(RenderEffect.createBlurEffect(rr, rr, Shader.TileMode.CLAMP));
+        }
     }
 
     /** Fades the dim behind a window in or out. */

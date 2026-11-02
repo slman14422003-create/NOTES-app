@@ -25,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.SpringAnimation;
 
 import java.util.List;
 
@@ -66,6 +67,14 @@ final class LiftMenu {
         boolean closing;
         ValueAnimator backdrop;
         ValueAnimator blurAnim;
+        final java.util.List<SpringAnimation> springs = new java.util.ArrayList<>();
+
+        void spring(View v, DynamicAnimation.ViewProperty prop, float target, float stiffness, float damping) {
+            SpringAnimation sa = new SpringAnimation(v, prop, target);
+            sa.getSpring().setStiffness(stiffness).setDampingRatio(damping);
+            springs.add(sa);
+            sa.start();
+        }
 
         Session(Activity a, View anchor, List<Item> items) {
             this.a = a;
@@ -255,9 +264,9 @@ final class LiftMenu {
             snap.setVisibility(View.VISIBLE);
             anchor.setVisibility(View.INVISIBLE);
 
-            Motion.spring(snap, DynamicAnimation.SCALE_X, 1.04f, 320f, 0.55f);
-            Motion.spring(snap, DynamicAnimation.SCALE_Y, 1.04f, 320f, 0.55f);
-            if (fShift != 0f) Motion.spring(snap, DynamicAnimation.TRANSLATION_Y, fShift, 300f, 0.8f);
+            spring(snap, DynamicAnimation.SCALE_X, 1.04f, 320f, 0.55f);
+            spring(snap, DynamicAnimation.SCALE_Y, 1.04f, 320f, 0.55f);
+            if (fShift != 0f) spring(snap, DynamicAnimation.TRANSLATION_Y, fShift, 300f, 0.8f);
 
             menu.setPivotX(left ? Math.min(mw, aw / 2f) : Math.max(0, mw - aw / 2f));
             menu.setPivotY(fBelow ? 0f : mh);
@@ -267,8 +276,9 @@ final class LiftMenu {
             menu.setVisibility(View.VISIBLE);
             menu.animate().alpha(1f).setStartDelay(30).setDuration(170).start();
             menu.postDelayed(() -> {
-                Motion.spring(menu, DynamicAnimation.SCALE_X, 1f, 420f, 0.66f);
-                Motion.spring(menu, DynamicAnimation.SCALE_Y, 1f, 420f, 0.66f);
+                if (closing) return;
+                spring(menu, DynamicAnimation.SCALE_X, 1f, 420f, 0.66f);
+                spring(menu, DynamicAnimation.SCALE_Y, 1f, 420f, 0.66f);
             }, 30);
         }
 
@@ -283,32 +293,56 @@ final class LiftMenu {
                 blurAnim.removeAllListeners();
                 blurAnim.cancel();
             }
-            Glass.animateContent(a, false, null);
-            Window w = dialog.getWindow();
-            if (snap != null) {
-                Motion.spring(snap, DynamicAnimation.SCALE_X, 1f, 500f, 0.8f);
-                Motion.spring(snap, DynamicAnimation.SCALE_Y, 1f, 500f, 0.8f);
-                Motion.spring(snap, DynamicAnimation.TRANSLATION_Y, 0f, 500f, 0.8f);
-            }
-            if (menu != null) {
-                menu.animate().alpha(0f).scaleX(0.85f).scaleY(0.85f).setStartDelay(0).setDuration(150).start();
-            }
-            final Runnable finish = () -> {
-                anchor.setVisibility(View.VISIBLE);
-                try {
-                    dialog.dismiss();
-                } catch (Throwable ignored) {
+            for (SpringAnimation sa : springs) if (sa.isRunning()) sa.cancel();
+            if (menu != null) menu.animate().cancel();
+            final Window w = dialog.getWindow();
+            final float s0 = snap == null ? 1f : snap.getScaleX();
+            final float t0 = snap == null ? 0f : snap.getTranslationY();
+            final float m0 = menu == null ? 0f : menu.getAlpha();
+            final float ms0 = menu == null ? 1f : menu.getScaleX();
+            final float dim0 = w == null ? 0f : w.getAttributes().dimAmount;
+            final float b0 = Glass.contentFraction();
+            ValueAnimator va = ValueAnimator.ofFloat(0f, 1f);
+            va.setDuration(230);
+            va.setInterpolator(new android.view.animation.DecelerateInterpolator(1.4f));
+            va.addUpdateListener(u -> {
+                float f = (float) u.getAnimatedValue();
+                float k = 1f - f;
+                if (snap != null) {
+                    float sc = 1f + (s0 - 1f) * k;
+                    snap.setScaleX(sc);
+                    snap.setScaleY(sc);
+                    snap.setTranslationY(t0 * k);
                 }
-                if (after != null) after.run();
-            };
-            if (w == null) {
-                finish.run();
-                return;
-            }
-            Glass.animateBehind(w, 0.22f, false, () -> {
-                Glass.clearContent(a);
-                finish.run();
+                if (menu != null) {
+                    menu.setAlpha(m0 * k);
+                    float ms = ms0 + (0.9f - ms0) * f;
+                    menu.setScaleX(ms);
+                    menu.setScaleY(ms);
+                }
+                if (w != null) {
+                    try {
+                        WindowManager.LayoutParams p = w.getAttributes();
+                        p.dimAmount = dim0 * k;
+                        w.setAttributes(p);
+                    } catch (Throwable ignored) {
+                    }
+                }
+                Glass.setContentFraction(a, b0 * k);
             });
+            va.addListener(new android.animation.AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(android.animation.Animator animation) {
+                    Glass.clearContent(a);
+                    anchor.setVisibility(View.VISIBLE);
+                    try {
+                        dialog.dismiss();
+                    } catch (Throwable ignored) {
+                    }
+                    if (after != null) after.run();
+                }
+            });
+            va.start();
         }
     }
 }
